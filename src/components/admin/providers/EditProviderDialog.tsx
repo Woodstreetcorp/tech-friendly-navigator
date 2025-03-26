@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ProviderForm } from './ProviderForm';
 
 type Provider = {
@@ -43,11 +43,11 @@ export const EditProviderDialog = ({
   if (!currentProvider) return null;
   
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Service Provider</DialogTitle>
-        </DialogHeader>
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent className="overflow-y-auto w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Edit Service Provider</SheetTitle>
+        </SheetHeader>
         <ProviderForm
           provider={currentProvider}
           onProviderChange={(updatedProvider) => onProviderChange({...currentProvider, ...updatedProvider})}
@@ -55,7 +55,7 @@ export const EditProviderDialog = ({
           submitLabel="Save Changes"
           categories={categories}
         />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };

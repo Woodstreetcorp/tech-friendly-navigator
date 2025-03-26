@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { ProviderForm } from './ProviderForm';
@@ -43,17 +43,17 @@ export const AddProviderDialog = ({
   categories = []
 }: AddProviderDialogProps) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetTrigger asChild>
         <Button className="flex items-center gap-2">
           <PlusCircle size={16} />
           Add Provider
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add New Service Provider</DialogTitle>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent className="overflow-y-auto w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Add New Service Provider</SheetTitle>
+        </SheetHeader>
         <ProviderForm
           provider={newProvider}
           onProviderChange={onProviderChange}
@@ -61,7 +61,7 @@ export const AddProviderDialog = ({
           submitLabel="Add Provider"
           categories={categories}
         />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
