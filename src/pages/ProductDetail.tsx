@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check, ExternalLink, Star } from 'lucide-react';
@@ -8,6 +9,7 @@ import { toast } from 'sonner';
 import { useUser } from '@/context/UserContext';
 import UserInfoForm from '@/components/UserInfoForm';
 import { Product } from '@/components/ProductCard';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const productsData: Product[] = [
   {
@@ -125,22 +127,29 @@ const ProductDetail = () => {
   const { trackEvent, isUserDataCollected } = useUser();
 
   useEffect(() => {
+    console.log("ProductDetail mounted, loading product ID:", productId);
     setLoading(true);
-    setTimeout(() => {
-      const foundProduct = productsData.find(p => p.id === productId) || null;
+    
+    // Find the product in our data
+    const foundProduct = productsData.find(p => p.id === productId) || null;
+    console.log("Found product:", foundProduct ? foundProduct.name : "Not found");
+    
+    // Only track event if the product is found
+    if (foundProduct) {
       setProduct(foundProduct);
+      trackEvent({
+        eventType: 'product_detail_view',
+        productId: foundProduct.id,
+        productName: foundProduct.name,
+        source: 'product_detail_page',
+        url: window.location.href
+      });
+    }
+    
+    // Short timeout to show loading state
+    setTimeout(() => {
       setLoading(false);
-      
-      if (foundProduct) {
-        trackEvent({
-          eventType: 'product_detail_view',
-          productId: foundProduct.id,
-          productName: foundProduct.name,
-          source: 'product_detail_page',
-          url: window.location.href
-        });
-      }
-    }, 500);
+    }, 300);
   }, [productId, trackEvent]);
 
   const handleCTAClick = () => {
@@ -172,10 +181,21 @@ const ProductDetail = () => {
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow container-custom py-10">
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="animate-pulse">
-              <div className="h-8 w-32 bg-gray-200 rounded mb-4"></div>
-              <div className="h-64 w-full max-w-2xl bg-gray-200 rounded"></div>
+          <div className="flex items-center mb-6 text-sm">
+            <Link to="/" className="text-muted-foreground hover:text-primary">Home</Link>
+            <span className="mx-2">/</span>
+            <Link to="/recommendations" className="text-muted-foreground hover:text-primary">Recommendations</Link>
+            <span className="mx-2">/</span>
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
+            <Skeleton className="h-80 w-full rounded-lg" />
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-12 w-40" />
             </div>
           </div>
         </main>
