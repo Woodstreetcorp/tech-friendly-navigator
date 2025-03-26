@@ -15,6 +15,11 @@ type Product = {
   compatibility?: string[];
   recommended?: boolean;
   recommendationReasons?: string[];
+  brand?: string;
+  affiliateUrl?: string;
+  commissionRate?: number;
+  affiliateId?: string;
+  serviceProvider?: string;
 };
 
 interface EditProductDialogProps {
