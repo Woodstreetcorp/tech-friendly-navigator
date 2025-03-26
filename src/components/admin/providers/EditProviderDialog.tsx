@@ -12,17 +12,17 @@ type Provider = {
   description: string;
   website: string;
   contactEmail: string;
-  features?: string[];
-  compatibility?: string[];
-  recommended?: boolean;
-  recommendationReasons?: string[];
+  features: string[];
+  compatibility: string[];
+  recommended: boolean;
+  recommendationReasons: string[];
 };
 
 interface EditProviderDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   currentProvider: Provider | null;
-  onProviderChange: (provider: Provider) => void;
+  onProviderChange: (provider: Provider | null) => void;
   onEditProvider: () => void;
 }
 
@@ -43,7 +43,7 @@ export const EditProviderDialog = ({
         </DialogHeader>
         <ProviderForm
           provider={currentProvider}
-          onProviderChange={onProviderChange}
+          onProviderChange={(updatedProvider) => onProviderChange({...currentProvider, ...updatedProvider})}
           onSubmit={onEditProvider}
           submitLabel="Save Changes"
         />

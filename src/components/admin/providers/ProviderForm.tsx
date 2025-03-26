@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
+import { ImageUploader } from '../common/ImageUploader';
 
 type Provider = {
   id: string;
@@ -82,6 +83,12 @@ export const ProviderForm = ({
   return (
     <div className="space-y-4 py-4">
       <div className="grid gap-4">
+        <ImageUploader 
+          currentImage={provider.image || '/placeholder.svg'} 
+          onImageChange={(imageUrl) => onProviderChange({...provider, image: imageUrl})}
+          label="Provider Logo/Image"
+        />
+        
         <div className="space-y-2">
           <label htmlFor="name" className="text-sm font-medium">Name *</label>
           <Input 

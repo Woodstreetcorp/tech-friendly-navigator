@@ -5,7 +5,7 @@ import { ProviderList } from './providers/ProviderList';
 import { AddProviderDialog } from './providers/AddProviderDialog';
 import { EditProviderDialog } from './providers/EditProviderDialog';
 
-// Sample providers data (in a real app, this would come from your backend)
+// Sample providers data with optional fields defined properly
 const sampleProviders = [
   {
     id: 'prov1',
@@ -32,11 +32,26 @@ const sampleProviders = [
     contactEmail: 'support@rogers.com',
     features: ['DIY Installation Option', 'Professional Installation', 'Mobile App'],
     compatibility: ['Google Home', 'Amazon Alexa'],
-    recommended: false
+    recommended: false,
+    recommendationReasons: []
   }
 ];
 
-type Provider = typeof sampleProviders[0];
+// Define the Provider type more precisely with optional fields
+type Provider = {
+  id: string;
+  name: string;
+  category: string;
+  image: string;
+  rating: number;
+  description: string;
+  website: string;
+  contactEmail: string;
+  features: string[];
+  compatibility: string[];
+  recommended: boolean;
+  recommendationReasons: string[];
+};
 
 export const ProvidersManager = () => {
   const [providers, setProviders] = useState<Provider[]>(sampleProviders);
@@ -141,7 +156,7 @@ export const ProvidersManager = () => {
 
       <ProviderList
         providers={providers}
-        onEdit={(provider) => {
+        onEdit={(provider: Provider) => {
           setCurrentProvider(provider);
           setIsEditDialogOpen(true);
         }}
@@ -152,7 +167,7 @@ export const ProvidersManager = () => {
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         currentProvider={currentProvider}
-        onProviderChange={setCurrentProvider}
+        onProviderChange={(provider: Provider | null) => setCurrentProvider(provider)}
         onEditProvider={handleEditProvider}
       />
     </div>

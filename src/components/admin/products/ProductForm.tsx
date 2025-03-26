@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { X, Plus } from 'lucide-react';
+import { ImageUploader } from '../common/ImageUploader';
 
 type Product = {
   id: string;
@@ -79,6 +79,11 @@ export const ProductForm = ({
   return (
     <div className="space-y-4 py-4">
       <div className="grid gap-4">
+        <ImageUploader 
+          currentImage={product.image || '/placeholder.svg'} 
+          onImageChange={(imageUrl) => onProductChange({...product, image: imageUrl})}
+        />
+        
         <div className="space-y-2">
           <label htmlFor="name" className="text-sm font-medium">Name *</label>
           <Input 
@@ -126,7 +131,6 @@ export const ProductForm = ({
           />
         </div>
         
-        {/* Recommended Switch */}
         <div className="flex items-center justify-between">
           <label htmlFor="recommended" className="text-sm font-medium">Mark as Recommended</label>
           <Switch 
@@ -136,7 +140,6 @@ export const ProductForm = ({
           />
         </div>
         
-        {/* Features Section */}
         <div className="space-y-2 border-t pt-4 mt-2">
           <label className="text-sm font-medium">Key Features</label>
           <div className="flex gap-2">
@@ -171,7 +174,6 @@ export const ProductForm = ({
           </div>
         </div>
         
-        {/* Compatibility Section */}
         <div className="space-y-2 border-t pt-4 mt-2">
           <label className="text-sm font-medium">Compatible With</label>
           <div className="flex gap-2">
@@ -206,7 +208,6 @@ export const ProductForm = ({
           </div>
         </div>
         
-        {/* Recommendation Reasons Section (only shown if product is recommended) */}
         {product.recommended && (
           <div className="space-y-2 border-t pt-4 mt-2">
             <label className="text-sm font-medium">Recommendation Reasons (e.g., "Top Rated", "Easy Installation")</label>
