@@ -9,6 +9,8 @@ import Recommendations from "./pages/Recommendations";
 import Partners from "./pages/Partners";
 import NotFound from "./pages/NotFound";
 import { UserProvider } from "./context/UserContext";
+import AdminPanel from "./pages/admin/AdminPanel";
+import AdminLogin from "./pages/admin/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/partners" element={<Partners />} />
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminPanel />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
