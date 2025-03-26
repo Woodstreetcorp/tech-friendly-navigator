@@ -9,17 +9,21 @@ export type Product = {
   id: string;
   name: string;
   category: string;
+  subCategory?: string;
   description: string;
   price: number;
   featuredImage: string;
   brand: string;
   features: string[];
   compatibility: string[];
+  ecosystems?: string[];
   rating: number;
   reviewCount: number;
   recommended?: boolean;
+  recommendationReasons?: string[];
   affiliateUrl?: string;
   commissionRate?: number; // percentage of sale
+  serviceProvider?: string;
 };
 
 type ProductCardProps = {
@@ -28,7 +32,12 @@ type ProductCardProps = {
 };
 
 const ProductCard = ({ product, compact = false }: ProductCardProps) => {
-  const { name, category, description, price, featuredImage, brand, features, compatibility, rating, reviewCount, recommended, affiliateUrl } = product;
+  const { 
+    name, category, description, price, featuredImage, brand, 
+    features, compatibility, rating, reviewCount, recommended, 
+    recommendationReasons, affiliateUrl 
+  } = product;
+  
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [email, setEmail] = useState('');
 
@@ -183,6 +192,23 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
           <p className="text-muted-foreground mt-2 text-sm line-clamp-2">{description}</p>
         </div>
         
+        {/* Recommendation reasons - new section */}
+        {recommended && recommendationReasons && recommendationReasons.length > 0 && (
+          <div className="mb-4 mt-1">
+            <div className="flex flex-wrap gap-2">
+              {recommendationReasons.map((reason, idx) => (
+                <span 
+                  key={idx} 
+                  className="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium bg-primary/10 text-primary"
+                >
+                  <Check size={12} className="mr-1" />
+                  {reason}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="space-y-4 flex-grow">
           <ul className="space-y-2">
             {features.slice(0, 3).map((feature, index) => (
@@ -230,7 +256,7 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
               size="sm"
               className="rounded-full"
             >
-              View Deal
+              {product.serviceProvider ? 'Contact Provider' : 'View Deal'}
             </Button>
           )}
         </div>
@@ -240,3 +266,4 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
 };
 
 export default ProductCard;
+
