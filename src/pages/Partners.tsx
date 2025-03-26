@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { useUser } from '../context/UserContext';
-import { HandShake, Users, TrendingUp } from 'lucide-react';
+import { Handshake, Users, TrendingUp } from 'lucide-react';
 
 const Partners = () => {
   const { trackEvent } = useUser();
@@ -82,7 +82,7 @@ const Partners = () => {
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
                     <h3 className="text-xl font-semibold mb-3 flex items-center">
-                      <HandShake className="mr-2 h-5 w-5 text-primary" />
+                      <Handshake className="mr-2 h-5 w-5 text-primary" />
                       Why Partner With Us?
                     </h3>
                     <ul className="space-y-2">
@@ -135,9 +135,9 @@ const Partners = () => {
                     How It Works
                   </h3>
                   <p className="mb-4">
-                    When you partner with us, your products or services get listed on our platform. We earn a commission 
-                    set by you when customers purchase through our referrals. You maintain control over your commission 
-                    structure while gaining access to our growing user base of smart home enthusiasts.
+                    When you partner with us, your products or services get listed on our platform. You set the commission 
+                    structure and we earn a commission when customers purchase through our referrals. You maintain control 
+                    over your commission rates while gaining access to our growing user base of smart home enthusiasts.
                   </p>
                   
                   <h3 className="text-xl font-semibold mb-4">Apply to Become a Partner</h3>
