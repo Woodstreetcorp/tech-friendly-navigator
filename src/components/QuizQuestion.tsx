@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, AlertCircle } from 'lucide-react';
 
 export type QuestionOption = {
   id: string;
@@ -16,6 +16,11 @@ export type Question = {
   options?: QuestionOption[];
   min?: number;
   max?: number;
+  maxSelections?: number;
+  conditionalSelections?: {
+    exclusive: string[];
+    regular: string[];
+  };
 };
 
 type QuizQuestionProps = {
@@ -29,6 +34,7 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
   const [selected, setSelected] = useState<any>(currentValue || (question.type === 'multi-select' ? [] : ''));
   const [isValid, setIsValid] = useState(false);
   const [animate, setAnimate] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setAnimate(true);
@@ -41,16 +47,62 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
     } else {
       setIsValid(!!selected);
     }
+
+    // Clear error message when selection changes
+    setErrorMessage(null);
   }, [selected, question.type]);
 
   const handleSelectOption = (option: QuestionOption) => {
     if (question.type === 'multi-select') {
-      // Toggle selection for multi-select
-      const newSelected = Array.isArray(selected) 
-        ? selected.includes(option.value) 
-          ? selected.filter(val => val !== option.value) 
-          : [...selected, option.value]
-        : [option.value];
+      let newSelected: any[] = [];
+      
+      // Check if we have conditional selections
+      if (question.conditionalSelections) {
+        const { exclusive, regular } = question.conditionalSelections;
+        const clickedValue = option.value.toString();
+        
+        // If clicking an exclusive option (like "Entire house")
+        if (exclusive.includes(clickedValue)) {
+          // If already selected, deselect it
+          if (selected.includes(clickedValue)) {
+            newSelected = [];
+          } else {
+            // Select only this exclusive option
+            newSelected = [clickedValue];
+          }
+        } 
+        // If clicking a regular option
+        else if (regular.includes(clickedValue)) {
+          // Start with current selection minus any exclusive options
+          newSelected = selected.filter(item => !exclusive.includes(item));
+          
+          // Toggle the clicked option
+          if (newSelected.includes(clickedValue)) {
+            newSelected = newSelected.filter(val => val !== clickedValue);
+          } else {
+            newSelected = [...newSelected, clickedValue];
+          }
+        }
+      } 
+      // Regular multi-select handling
+      else {
+        // Check if we're at the max selections and trying to add more
+        if (
+          question.maxSelections && 
+          selected.length >= question.maxSelections && 
+          !selected.includes(option.value)
+        ) {
+          setErrorMessage(`You can only select up to ${question.maxSelections} options`);
+          return;
+        }
+        
+        // Toggle selection for multi-select
+        newSelected = Array.isArray(selected) 
+          ? selected.includes(option.value) 
+            ? selected.filter(val => val !== option.value) 
+            : [...selected, option.value]
+          : [option.value];
+      }
       
       setSelected(newSelected);
       onAnswer(question.id, newSelected);
@@ -73,6 +125,32 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
     }
   };
 
+  const isOptionSelected = (option: QuestionOption) => {
+    if (question.type === 'multi-select' && Array.isArray(selected)) {
+      return selected.includes(option.value);
+    }
+    return selected === option.value;
+  };
+
+  const isOptionDisabled = (option: QuestionOption) => {
+    if (question.type === 'multi-select' && question.conditionalSelections) {
+      const { exclusive, regular } = question.conditionalSelections;
+      const optionValue = option.value.toString();
+      
+      // If any exclusive option is selected, disable regular options
+      if (exclusive.some(val => selected.includes(val)) && regular.includes(optionValue)) {
+        return true;
+      }
+      
+      // If any regular option is selected, disable exclusive options
+      if (regular.some(val => selected.includes(val)) && exclusive.includes(optionValue)) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
   return (
     <div className={`glass-card p-8 md:p-10 max-w-2xl mx-auto transition-all duration-500 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
       <div className="space-y-6">
@@ -82,6 +160,13 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
             <p className="text-muted-foreground">{question.description}</p>
           )}
         </div>
+
+        {errorMessage && (
+          <div className="bg-destructive/10 text-destructive rounded-lg p-3 flex items-start">
+            <AlertCircle size={18} className="mr-2 mt-0.5 flex-shrink-0" />
+            <p>{errorMessage}</p>
+          </div>
+        )}
 
         <div className="space-y-4">
           {question.type === 'range' ? (
@@ -102,36 +187,44 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {question.options?.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => handleSelectOption(option)}
-                  className={`
-                    text-left p-4 rounded-xl border transition-all duration-200
-                    ${(question.type === 'multi-select' && Array.isArray(selected) && selected.includes(option.value)) || selected === option.value
-                      ? 'border-primary bg-primary/5 shadow-sm'
-                      : 'border-border hover:border-primary/30 hover:bg-secondary/50'
-                    }
-                  `}
-                >
-                  <div className="flex items-center">
-                    <div className={`
-                      w-5 h-5 rounded-full mr-3 flex items-center justify-center
-                      ${(question.type === 'multi-select' && Array.isArray(selected) && selected.includes(option.value)) || selected === option.value
-                        ? 'bg-primary text-white'
-                        : 'border border-muted-foreground/40'
+              {question.options?.map((option) => {
+                const isSelected = isOptionSelected(option);
+                const isDisabled = isOptionDisabled(option);
+                
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => handleSelectOption(option)}
+                    disabled={isDisabled}
+                    className={`
+                      text-left p-4 rounded-xl border transition-all duration-200
+                      ${isSelected
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : isDisabled
+                          ? 'border-border bg-muted cursor-not-allowed opacity-60'
+                          : 'border-border hover:border-primary/30 hover:bg-secondary/50'
                       }
-                    `}>
-                      {((question.type === 'multi-select' && Array.isArray(selected) && selected.includes(option.value)) || selected === option.value) && (
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M8.5 2.5L3.5 7.5L1.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
+                    `}
+                  >
+                    <div className="flex items-center">
+                      <div className={`
+                        w-5 h-5 rounded-full mr-3 flex items-center justify-center
+                        ${isSelected
+                          ? 'bg-primary text-white'
+                          : 'border border-muted-foreground/40'
+                        }
+                      `}>
+                        {isSelected && (
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8.5 2.5L3.5 7.5L1.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
+                      <span>{option.label}</span>
                     </div>
-                    <span>{option.label}</span>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

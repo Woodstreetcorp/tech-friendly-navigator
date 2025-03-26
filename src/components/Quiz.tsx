@@ -43,8 +43,9 @@ const quizQuestions: Question[] = [
   {
     id: 'goals',
     question: 'What are your main goals with smart home tech?',
-    description: 'Select all that apply to you.',
+    description: 'Select all that apply to you (maximum 4).',
     type: 'multi-select',
+    maxSelections: 4,
     options: [
       { id: 'security', label: 'Security (cameras, alarms, sensors)', value: 'security' },
       { id: 'energy', label: 'Energy Efficiency (thermostats, lighting)', value: 'energy' },
@@ -58,8 +59,9 @@ const quizQuestions: Question[] = [
   {
     id: 'specific-features',
     question: 'Which specific features are most important to you?',
-    description: 'Select all that are important.',
+    description: 'Select all that are important (maximum 5).',
     type: 'multi-select',
+    maxSelections: 5,
     options: [
       { id: 'voice-control', label: 'Voice Control', value: 'voice-control' },
       { id: 'mobile-app', label: 'Mobile App Control', value: 'mobile-app' },
@@ -84,7 +86,9 @@ const quizQuestions: Question[] = [
   {
     id: 'ecosystem',
     question: 'Do you already use any smart home products or platforms?',
-    type: 'single-select',
+    description: 'Select up to 3 platforms you currently use.',
+    type: 'multi-select',
+    maxSelections: 3,
     options: [
       { id: 'google', label: 'Google Home', value: 'google' },
       { id: 'alexa', label: 'Amazon Alexa', value: 'alexa' },
@@ -96,8 +100,9 @@ const quizQuestions: Question[] = [
   {
     id: 'device-preference',
     question: 'Which smart devices are you most interested in?',
-    description: 'Select all that interest you.',
+    description: 'Select all that interest you (maximum 4).',
     type: 'multi-select',
+    maxSelections: 4,
     options: [
       { id: 'hubs', label: 'Smart Hubs & Controllers', value: 'hubs' },
       { id: 'lighting', label: 'Smart Lighting', value: 'lighting' },
@@ -140,8 +145,12 @@ const quizQuestions: Question[] = [
   {
     id: 'areas',
     question: 'Which areas of your home are you most interested in upgrading?',
-    description: 'Select all that apply to you.',
+    description: 'Select "Entire house" or choose specific areas.',
     type: 'multi-select',
+    conditionalSelections: {
+      exclusive: ['whole-house'],
+      regular: ['entryway', 'living-areas', 'outdoor', 'garage']
+    },
     options: [
       { id: 'entryway', label: 'Front door / Entryway', value: 'entryway' },
       { id: 'living-areas', label: 'Living room / Kitchen', value: 'living-areas' },
