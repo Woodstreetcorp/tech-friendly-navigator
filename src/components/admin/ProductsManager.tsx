@@ -1,11 +1,9 @@
 
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, PencilIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProductList } from './products/ProductList';
+import { AddProductDialog } from './products/AddProductDialog';
+import { EditProductDialog } from './products/EditProductDialog';
 
 // Sample products data (in a real app, this would come from your backend)
 const sampleProducts = [
@@ -126,178 +124,31 @@ export const ProductsManager = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Products Management</h2>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <PlusCircle size={16} />
-              Add Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Product</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">Name *</label>
-                  <Input 
-                    id="name" 
-                    value={newProduct.name || ''} 
-                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="category" className="text-sm font-medium">Category *</label>
-                  <Input 
-                    id="category" 
-                    value={newProduct.category || ''} 
-                    onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="price" className="text-sm font-medium">Price *</label>
-                  <Input 
-                    id="price" 
-                    type="number" 
-                    value={newProduct.price || ''} 
-                    onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value)})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="rating" className="text-sm font-medium">Rating (1-5)</label>
-                  <Input 
-                    id="rating" 
-                    type="number" 
-                    min="1" 
-                    max="5" 
-                    step="0.1" 
-                    value={newProduct.rating || 5.0} 
-                    onChange={(e) => setNewProduct({...newProduct, rating: parseFloat(e.target.value)})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">Description</label>
-                  <Input 
-                    id="description" 
-                    value={newProduct.description || ''} 
-                    onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                  />
-                </div>
-              </div>
-              <Button className="w-full" onClick={handleAddProduct}>Add Product</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <AddProductDialog 
+          isOpen={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          newProduct={newProduct}
+          onProductChange={setNewProduct}
+          onAddProduct={handleAddProduct}
+        />
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Image</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Rating</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id}>
-              <TableCell>
-                <img src={product.image} alt={product.name} className="h-12 w-12 object-contain" />
-              </TableCell>
-              <TableCell className="font-medium">{product.name}</TableCell>
-              <TableCell>{product.category}</TableCell>
-              <TableCell>${product.price.toFixed(2)}</TableCell>
-              <TableCell>{product.rating}</TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => {
-                      setCurrentProduct(product);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    <PencilIcon size={16} />
-                  </Button>
-                  <Button 
-                    variant="destructive" 
-                    size="icon"
-                    onClick={() => handleDeleteProduct(product.id)}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ProductList 
+        products={products}
+        onEdit={(product) => {
+          setCurrentProduct(product);
+          setIsEditDialogOpen(true);
+        }}
+        onDelete={handleDeleteProduct}
+      />
 
-      {/* Edit Product Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
-          </DialogHeader>
-          {currentProduct && (
-            <div className="space-y-4 py-4">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="edit-name" className="text-sm font-medium">Name *</label>
-                  <Input 
-                    id="edit-name" 
-                    value={currentProduct.name} 
-                    onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="edit-category" className="text-sm font-medium">Category *</label>
-                  <Input 
-                    id="edit-category" 
-                    value={currentProduct.category} 
-                    onChange={(e) => setCurrentProduct({...currentProduct, category: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="edit-price" className="text-sm font-medium">Price *</label>
-                  <Input 
-                    id="edit-price" 
-                    type="number" 
-                    value={currentProduct.price} 
-                    onChange={(e) => setCurrentProduct({...currentProduct, price: parseFloat(e.target.value)})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="edit-rating" className="text-sm font-medium">Rating (1-5)</label>
-                  <Input 
-                    id="edit-rating" 
-                    type="number" 
-                    min="1" 
-                    max="5" 
-                    step="0.1" 
-                    value={currentProduct.rating} 
-                    onChange={(e) => setCurrentProduct({...currentProduct, rating: parseFloat(e.target.value)})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="edit-description" className="text-sm font-medium">Description</label>
-                  <Input 
-                    id="edit-description" 
-                    value={currentProduct.description} 
-                    onChange={(e) => setCurrentProduct({...currentProduct, description: e.target.value})}
-                  />
-                </div>
-              </div>
-              <Button className="w-full" onClick={handleEditProduct}>Save Changes</Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <EditProductDialog 
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        currentProduct={currentProduct}
+        onProductChange={setCurrentProduct}
+        onEditProduct={handleEditProduct}
+      />
     </div>
   );
 };
