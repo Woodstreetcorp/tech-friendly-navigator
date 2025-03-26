@@ -1,10 +1,11 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, Shield, Zap, Home, BatteryCharging } from 'lucide-react';
+import { ArrowRight, CheckCircle, Shield, Zap, Home, BatteryCharging, Database, Cpu, Smartphone } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Quiz from '../components/Quiz';
+import FeaturedProducts from '../components/FeaturedProducts';
 
 const Index = () => {
   const [showQuiz, setShowQuiz] = useState(false);
@@ -48,18 +49,39 @@ const Index = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: '300ms' }}>
                   <button
                     onClick={startQuiz}
-                    className="py-4 px-8 bg-primary text-white rounded-full hover:bg-primary/90 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center w-full sm:w-auto"
+                    className="btn-primary w-full sm:w-auto"
                   >
                     <span>Start Your Personalized Quiz</span>
                     <ArrowRight size={18} className="ml-2" />
                   </button>
                   <Link
                     to="/recommendations"
-                    className="py-4 px-8 bg-secondary text-foreground rounded-full hover:bg-secondary/80 transition-all duration-300 flex items-center justify-center w-full sm:w-auto"
+                    className="btn-accent w-full sm:w-auto"
                   >
                     Browse All Solutions
                   </Link>
                 </div>
+              </div>
+            </div>
+          </section>
+          
+          {/* Featured Products Section */}
+          <section className="py-20 bg-gradient-to-r from-primary/5 to-accent/5">
+            <div className="container-custom">
+              <div className="text-center max-w-2xl mx-auto mb-16">
+                <h2 className="text-3xl font-bold mb-4">Popular Smart Home Solutions</h2>
+                <p className="text-muted-foreground">
+                  Explore our most recommended smart home products and services without taking the quiz.
+                </p>
+              </div>
+              
+              <FeaturedProducts />
+              
+              <div className="mt-12 text-center">
+                <Link to="/recommendations" className="btn-accent">
+                  View All Products and Services
+                  <ArrowRight size={18} className="ml-2" />
+                </Link>
               </div>
             </div>
           </section>
@@ -76,7 +98,7 @@ const Index = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div className="glass-card p-8 h-full flex flex-col items-center text-center animate-scale-in">
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                  <div className="feature-icon">
                     <Shield size={24} className="text-primary" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">Security Focus</h3>
@@ -86,7 +108,7 @@ const Index = () => {
                 </div>
                 
                 <div className="glass-card p-8 h-full flex flex-col items-center text-center animate-scale-in" style={{ animationDelay: '150ms' }}>
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                  <div className="feature-icon">
                     <Zap size={24} className="text-primary" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">Energy Efficiency</h3>
@@ -96,7 +118,7 @@ const Index = () => {
                 </div>
                 
                 <div className="glass-card p-8 h-full flex flex-col items-center text-center animate-scale-in" style={{ animationDelay: '300ms' }}>
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                  <div className="feature-icon">
                     <Home size={24} className="text-primary" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">Seamless Integration</h3>
@@ -153,7 +175,7 @@ const Index = () => {
               <div className="mt-16 text-center">
                 <button
                   onClick={startQuiz}
-                  className="py-4 px-8 bg-primary text-white rounded-full hover:bg-primary/90 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="btn-primary"
                 >
                   <span>Start Your Personalized Quiz</span>
                   <ArrowRight size={18} className="ml-2" />
@@ -280,7 +302,7 @@ const Index = () => {
                 </p>
                 <button
                   onClick={startQuiz}
-                  className="py-4 px-8 bg-primary text-white rounded-full hover:bg-primary/90 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="btn-primary"
                 >
                   <span>Get Your Personalized Recommendations</span>
                   <ArrowRight size={18} className="ml-2" />
