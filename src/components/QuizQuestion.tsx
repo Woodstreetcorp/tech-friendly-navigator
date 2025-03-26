@@ -85,24 +85,23 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
       } 
       // Regular multi-select handling
       else {
-        if (!Array.isArray(selected)) {
-          newSelected = [option.value];
+        // Ensure selected is always an array
+        const currentSelected = Array.isArray(selected) ? selected : [];
+        
+        // Check if the option is already selected
+        const isOptionSelected = currentSelected.includes(option.value);
+        
+        if (isOptionSelected) {
+          // If already selected, remove it
+          newSelected = currentSelected.filter(val => val !== option.value);
         } else {
-          // Check if the option is already selected
-          const isOptionSelected = selected.includes(option.value);
-          
-          if (isOptionSelected) {
-            // If already selected, just remove it
-            newSelected = selected.filter(val => val !== option.value);
-          } else {
-            // If not selected and we're at max, show error but don't add
-            if (question.maxSelections && selected.length >= question.maxSelections) {
-              setErrorMessage(`You can only select up to ${question.maxSelections} options`);
-              return;
-            }
-            // Otherwise add it
-            newSelected = [...selected, option.value];
+          // If not selected and we're at max, show error but don't add
+          if (question.maxSelections && currentSelected.length >= question.maxSelections) {
+            setErrorMessage(`You can only select up to ${question.maxSelections} options`);
+            return;
           }
+          // Otherwise add it
+          newSelected = [...currentSelected, option.value];
         }
       }
       
