@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { ProductForm } from './ProductForm';
@@ -31,24 +31,24 @@ export const AddProductDialog = ({
   onAddProduct 
 }: AddProductDialogProps) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetTrigger asChild>
         <Button className="flex items-center gap-2">
           <PlusCircle size={16} />
           Add Product
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent className="overflow-y-auto w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Add New Product</SheetTitle>
+        </SheetHeader>
         <ProductForm 
           product={newProduct} 
           onProductChange={onProductChange} 
           onSubmit={onAddProduct} 
           submitLabel="Add Product"
         />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };

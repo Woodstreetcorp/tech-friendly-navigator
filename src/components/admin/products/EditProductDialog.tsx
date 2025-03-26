@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ProductForm } from './ProductForm';
 
 type Product = {
@@ -35,18 +35,18 @@ export const EditProductDialog = ({
   if (!currentProduct) return null;
   
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Product</DialogTitle>
-        </DialogHeader>
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent className="overflow-y-auto w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Edit Product</SheetTitle>
+        </SheetHeader>
         <ProductForm 
           product={currentProduct} 
           onProductChange={onProductChange} 
           onSubmit={onEditProduct} 
           submitLabel="Save Changes"
         />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
