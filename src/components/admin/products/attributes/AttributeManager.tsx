@@ -5,6 +5,7 @@ import { CategoriesManager } from './CategoriesManager';
 import { BrandsManager } from './BrandsManager';
 import { PriceRangesManager } from './PriceRangesManager';
 import { CompatibilityManager } from './CompatibilityManager';
+import { ProviderCategoriesManager } from './ProviderCategoriesManager';
 
 export const AttributeManager = () => {
   return (
@@ -20,6 +21,7 @@ export const AttributeManager = () => {
           <TabsTrigger value="brands">Brands</TabsTrigger>
           <TabsTrigger value="price-ranges">Price Ranges</TabsTrigger>
           <TabsTrigger value="compatibility">Compatibility</TabsTrigger>
+          <TabsTrigger value="provider-categories">Provider Categories</TabsTrigger>
         </TabsList>
         
         <TabsContent value="categories">
@@ -36,6 +38,10 @@ export const AttributeManager = () => {
         
         <TabsContent value="compatibility">
           <CompatibilityManager />
+        </TabsContent>
+        
+        <TabsContent value="provider-categories">
+          <ProviderCategoriesManager />
         </TabsContent>
       </Tabs>
     </div>

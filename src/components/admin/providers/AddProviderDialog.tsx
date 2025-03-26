@@ -20,12 +20,18 @@ type Provider = {
   recommendationReasons?: string[];
 };
 
+type Category = {
+  id: string;
+  name: string;
+};
+
 interface AddProviderDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   newProvider: Partial<Provider>;
   onProviderChange: (provider: Partial<Provider>) => void;
   onAddProvider: () => void;
+  categories?: Category[];
 }
 
 export const AddProviderDialog = ({
@@ -33,7 +39,8 @@ export const AddProviderDialog = ({
   onOpenChange,
   newProvider,
   onProviderChange,
-  onAddProvider
+  onAddProvider,
+  categories = []
 }: AddProviderDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -52,6 +59,7 @@ export const AddProviderDialog = ({
           onProviderChange={onProviderChange}
           onSubmit={onAddProvider}
           submitLabel="Add Provider"
+          categories={categories}
         />
       </DialogContent>
     </Dialog>

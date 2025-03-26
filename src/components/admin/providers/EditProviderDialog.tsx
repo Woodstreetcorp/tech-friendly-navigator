@@ -18,12 +18,18 @@ type Provider = {
   recommendationReasons: string[];
 };
 
+type Category = {
+  id: string;
+  name: string;
+};
+
 interface EditProviderDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   currentProvider: Provider | null;
   onProviderChange: (provider: Provider | null) => void;
   onEditProvider: () => void;
+  categories?: Category[];
 }
 
 export const EditProviderDialog = ({
@@ -31,7 +37,8 @@ export const EditProviderDialog = ({
   onOpenChange,
   currentProvider,
   onProviderChange,
-  onEditProvider
+  onEditProvider,
+  categories = []
 }: EditProviderDialogProps) => {
   if (!currentProvider) return null;
   
@@ -46,6 +53,7 @@ export const EditProviderDialog = ({
           onProviderChange={(updatedProvider) => onProviderChange({...currentProvider, ...updatedProvider})}
           onSubmit={onEditProvider}
           submitLabel="Save Changes"
+          categories={categories}
         />
       </DialogContent>
     </Dialog>

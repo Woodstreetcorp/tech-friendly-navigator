@@ -53,6 +53,14 @@ type Provider = {
   recommendationReasons: string[];
 };
 
+// Sample provider categories (in a real app, these would come from the backend)
+const providerCategories = [
+  { id: 'pcat1', name: 'Full Home Solution' },
+  { id: 'pcat2', name: 'Security & Monitoring' },
+  { id: 'pcat3', name: 'DIY Installation' },
+  { id: 'pcat4', name: 'Home Automation' }
+];
+
 export const ProvidersManager = () => {
   const [providers, setProviders] = useState<Provider[]>(sampleProviders);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -151,6 +159,7 @@ export const ProvidersManager = () => {
           newProvider={newProvider}
           onProviderChange={setNewProvider}
           onAddProvider={handleAddProvider}
+          categories={providerCategories}
         />
       </div>
 
@@ -169,6 +178,7 @@ export const ProvidersManager = () => {
         currentProvider={currentProvider}
         onProviderChange={(provider: Provider | null) => setCurrentProvider(provider)}
         onEditProvider={handleEditProvider}
+        categories={providerCategories}
       />
     </div>
   );

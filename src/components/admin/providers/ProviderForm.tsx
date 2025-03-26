@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { ImageUploader } from '../common/ImageUploader';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Provider = {
   id: string;
@@ -24,18 +24,25 @@ type Provider = {
   recommendationReasons?: string[];
 };
 
+type Category = {
+  id: string;
+  name: string;
+};
+
 interface ProviderFormProps {
   provider: Partial<Provider>;
   onProviderChange: (updatedProvider: Partial<Provider>) => void;
   onSubmit: () => void;
   submitLabel: string;
+  categories?: Category[];
 }
 
 export const ProviderForm = ({
   provider,
   onProviderChange,
   onSubmit,
-  submitLabel
+  submitLabel,
+  categories = []
 }: ProviderFormProps) => {
   const [newFeature, setNewFeature] = React.useState('');
   const [newCompatiblity, setNewCompatibility] = React.useState('');
@@ -100,11 +107,27 @@ export const ProviderForm = ({
         
         <div className="space-y-2">
           <label htmlFor="category" className="text-sm font-medium">Category *</label>
-          <Input 
-            id="category" 
-            value={provider.category || ''} 
-            onChange={(e) => onProviderChange({...provider, category: e.target.value})}
-          />
+          {categories.length > 0 ? (
+            <Select
+              value={provider.category}
+              onValueChange={(value) => onProviderChange({...provider, category: value})}
+            >
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.name}>{category.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input 
+              id="category" 
+              value={provider.category || ''} 
+              onChange={(e) => onProviderChange({...provider, category: e.target.value})}
+            />
+          )}
         </div>
         
         <div className="space-y-2">
@@ -149,7 +172,6 @@ export const ProviderForm = ({
           />
         </div>
 
-        {/* Features Section */}
         <div className="space-y-2 pt-2">
           <h3 className="text-sm font-semibold">Key Features</h3>
           <div className="flex gap-2">
@@ -181,7 +203,6 @@ export const ProviderForm = ({
           </div>
         </div>
 
-        {/* Compatibility Section */}
         <div className="space-y-2 pt-2">
           <h3 className="text-sm font-semibold">Compatible With</h3>
           <div className="flex gap-2">
@@ -213,7 +234,6 @@ export const ProviderForm = ({
           </div>
         </div>
 
-        {/* Recommended Section */}
         <div className="space-y-4 pt-2">
           <div className="flex items-center space-x-2">
             <Switch
