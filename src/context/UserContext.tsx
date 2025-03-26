@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type UserData = {
@@ -42,12 +41,13 @@ const UserContext = createContext<UserContextType>(defaultContext);
 
 export const useUser = () => useContext(UserContext);
 
+const MAX_STORED_EVENTS = 50;
+
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserDataState] = useState<UserData | null>(null);
   const [events, setEvents] = useState<AnalyticsEvent[]>([]);
   const [isUserDataCollected, setIsUserDataCollected] = useState<boolean>(false);
 
-  // Load user data from localStorage on component mount
   useEffect(() => {
     const savedUserData = localStorage.getItem('approvu_user_data');
     if (savedUserData) {
@@ -71,16 +71,36 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Update localStorage when user data changes
   useEffect(() => {
     if (userData) {
-      localStorage.setItem('approvu_user_data', JSON.stringify(userData));
+      try {
+        localStorage.setItem('approvu_user_data', JSON.stringify(userData));
+      } catch (e) {
+        console.error('Error saving user data to localStorage', e);
+      }
     }
   }, [userData]);
 
-  // Update localStorage when events change
   useEffect(() => {
-    localStorage.setItem('approvu_analytics_events', JSON.stringify(events));
+    if (events.length > 0) {
+      try {
+        const eventsToStore = events.slice(-MAX_STORED_EVENTS);
+        localStorage.setItem('approvu_analytics_events', JSON.stringify(eventsToStore));
+      } catch (e) {
+        console.error('Error saving events to localStorage', e);
+        
+        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+          try {
+            const reducedEvents = events.slice(-Math.floor(MAX_STORED_EVENTS / 2));
+            localStorage.setItem('approvu_analytics_events', JSON.stringify(reducedEvents));
+            setEvents(reducedEvents);
+          } catch (innerError) {
+            console.error('Failed to save even reduced events, clearing localStorage events', innerError);
+            localStorage.removeItem('approvu_analytics_events');
+          }
+        }
+      }
+    }
   }, [events]);
 
   const setUserData = (data: UserData) => {
@@ -96,11 +116,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     console.log('Tracking event:', newEvent);
     
-    // In a production app, you would send this to your analytics service
-    // Example: await analyticsService.trackEvent(newEvent);
-    
-    // For now, we'll just store it locally
-    setEvents(prev => [...prev, newEvent]);
+    setEvents(prev => {
+      const updatedEvents = [...prev, newEvent];
+      return updatedEvents.length > MAX_STORED_EVENTS 
+        ? updatedEvents.slice(-MAX_STORED_EVENTS) 
+        : updatedEvents;
+    });
   };
 
   const clearUserData = () => {
