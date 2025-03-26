@@ -1,11 +1,15 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Filter, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { ArrowLeft, Filter, ChevronDown, ChevronUp, Check, ExternalLink } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ProductCard, { Product } from '../components/ProductCard';
 import { RecommendationResult, productData, serviceProviders } from '../utils/recommendationEngine';
 import { toast } from 'sonner';
+import { useUser } from '../context/UserContext';
+import UserInfoForm from '../components/UserInfoForm';
+import { Button } from '@/components/ui/button';
 
 const Recommendations = () => {
   const navigate = useNavigate();
@@ -19,6 +23,9 @@ const Recommendations = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(true);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showProviderForm, setShowProviderForm] = useState<string | null>(null);
+  
+  const { trackEvent, isUserDataCollected } = useUser();
   
   // Categories derived from product data
   const categories = ['all', ...new Set(productData.map(p => p.category.toLowerCase()))];
@@ -35,6 +42,12 @@ const Recommendations = () => {
         const parsed = JSON.parse(savedRecommendations);
         setRecommendations(parsed);
         setFilteredProducts(parsed.products);
+        
+        // Track page view with recommendations loaded
+        trackEvent({
+          eventType: 'recommendations_page_view',
+          source: 'recommendations_page',
+        });
       } catch (e) {
         console.error('Error parsing saved recommendations', e);
         // Fallback to all products
@@ -107,6 +120,31 @@ const Recommendations = () => {
     }, 500);
   };
   
+  const handleProviderClick = (providerId: string, providerName: string, website: string) => {
+    // Track the provider click
+    trackEvent({
+      eventType: 'provider_click',
+      providerId,
+      providerName,
+      url: website,
+    });
+    
+    // If user data already collected, proceed to provider website
+    if (isUserDataCollected) {
+      window.open(website, '_blank');
+    } else {
+      // Show user form for this provider
+      setShowProviderForm(providerId);
+    }
+  };
+  
+  const handleProviderFormComplete = (providerId: string) => {
+    const provider = recommendations?.serviceProviders.find(p => p.id === providerId);
+    setShowProviderForm(null);
+    
+    // Provider website will be opened by the form component
+  };
+  
   // Format price for display
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-CA', {
@@ -153,6 +191,24 @@ const Recommendations = () => {
             <p className="text-lg text-muted-foreground">
               {recommendations ? 'Based on your preferences, we recommend these smart home solutions.' : 'Browse our selection of smart home products and services.'}
             </p>
+            
+            {/* New prominent CTA */}
+            {recommendations && (
+              <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold text-lg">Not finding what you're looking for?</h3>
+                    <p className="text-muted-foreground">Take our quiz again to get more tailored recommendations.</p>
+                  </div>
+                  <Button 
+                    onClick={startNewQuiz}
+                    className="whitespace-nowrap"
+                  >
+                    Start New Quiz
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Filter button (mobile) */}
@@ -330,11 +386,85 @@ const Recommendations = () => {
                 </div>
               </div>
               
+              {/* Featured product banner (new) */}
+              {filteredProducts.length > 0 && filteredProducts.some(p => p.recommended) && (
+                <div className="mb-8">
+                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex items-center mb-3">
+                        <span className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full">
+                          TOP RECOMMENDATION
+                        </span>
+                      </div>
+                      
+                      {/* Featured product details */}
+                      {(() => {
+                        const featuredProduct = filteredProducts.find(p => p.recommended);
+                        if (!featuredProduct) return null;
+                        
+                        return (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-1">
+                              <div className="aspect-video overflow-hidden rounded-lg">
+                                <img 
+                                  src={featuredProduct.featuredImage} 
+                                  alt={featuredProduct.name} 
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="md:col-span-2">
+                              <h3 className="text-xl font-semibold mb-2">{featuredProduct.name}</h3>
+                              <p className="text-muted-foreground mb-4">{featuredProduct.description}</p>
+                              
+                              <div className="flex flex-wrap gap-3 mb-4">
+                                {featuredProduct.recommendationReasons?.map((reason, idx) => (
+                                  <span 
+                                    key={idx} 
+                                    className="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium bg-primary/15 text-primary"
+                                  >
+                                    <Check size={12} className="mr-1" />
+                                    {reason}
+                                  </span>
+                                ))}
+                              </div>
+                              
+                              <div className="flex items-center justify-between mt-4">
+                                <span className="text-2xl font-bold">${featuredProduct.price.toFixed(2)}</span>
+                                <Button 
+                                  onClick={() => {
+                                    const cardElement = document.getElementById(`product-${featuredProduct.id}`);
+                                    if (cardElement) {
+                                      cardElement.scrollIntoView({ behavior: 'smooth' });
+                                      // Add a highlight effect
+                                      cardElement.classList.add('ring-4', 'ring-primary/50');
+                                      setTimeout(() => {
+                                        cardElement.classList.remove('ring-4', 'ring-primary/50');
+                                      }, 2000);
+                                    }
+                                  }}
+                                  className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-200"
+                                >
+                                  <span>View Product Details</span>
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Products grid */}
               {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <div key={product.id} id={`product-${product.id}`}>
+                      <ProductCard product={product} />
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -375,7 +505,14 @@ const Recommendations = () => {
                               <h4 className="text-lg font-medium mb-4">Available Packages</h4>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {provider.packages.map((pkg, index) => (
-                                  <div key={index} className="border rounded-lg p-4 relative border-border">
+                                  <div key={index} className="border rounded-lg p-4 relative border-border hover:shadow-md transition-shadow duration-200">
+                                    {index === 0 && (
+                                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                                        <span className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                                          BEST VALUE
+                                        </span>
+                                      </div>
+                                    )}
                                     <h5 className="font-semibold mb-1">{pkg.name}</h5>
                                     <p className="text-primary font-bold">${pkg.price.toFixed(2)}/mo</p>
                                     <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
@@ -414,19 +551,13 @@ const Recommendations = () => {
                                 </span>
                               ))}
                             </div>
-                            <a
-                              href={provider.website}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors inline-block"
-                              onClick={() => {
-                                // Track click for analytics
-                                console.log(`Provider click tracked: ${provider.id} - ${provider.name}`);
-                                toast.success(`Tracking click for ${provider.name}`);
-                              }}
+                            <Button
+                              onClick={() => handleProviderClick(provider.id, provider.name, provider.website)}
+                              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-200"
                             >
+                              <ExternalLink size={16} className="mr-1" />
                               View Plans
-                            </a>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -452,6 +583,22 @@ const Recommendations = () => {
       </main>
       
       <Footer />
+      
+      {/* Provider user info collection forms */}
+      {showProviderForm && recommendations?.serviceProviders.map(provider => {
+        if (provider.id === showProviderForm) {
+          return (
+            <UserInfoForm
+              key={provider.id}
+              onClose={() => setShowProviderForm(null)}
+              onComplete={() => handleProviderFormComplete(provider.id)}
+              providerName={provider.name}
+              affiliateUrl={provider.website}
+            />
+          );
+        }
+        return null;
+      })}
     </div>
   );
 };

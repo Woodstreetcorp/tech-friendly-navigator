@@ -1,9 +1,11 @@
 
-import { Check } from 'lucide-react';
+import { Check, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { toast } from 'sonner';
+import { useUser } from '../context/UserContext';
+import UserInfoForm from './UserInfoForm';
 
 export type Product = {
   id: string;
@@ -40,21 +42,20 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
   
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [email, setEmail] = useState('');
+  const [showUserInfoForm, setShowUserInfoForm] = useState(false);
+  
+  const { trackEvent, isUserDataCollected } = useUser();
 
   const trackClick = (productId: string, productName: string) => {
-    // Track click for analytics
-    console.log(`Product click tracked: ${productId} - ${productName}`);
+    // Enhanced tracking with more details
+    trackEvent({
+      eventType: 'product_click',
+      productId,
+      productName,
+      source: compact ? 'compact_card' : 'full_card',
+      url: affiliateUrl,
+    });
     
-    // In a real implementation, you would send this data to your analytics service
-    // Example: 
-    // Analytics.trackEvent('product_click', { 
-    //   productId, 
-    //   productName,
-    //   timestamp: new Date().toISOString(),
-    //   commissionRate: product.commissionRate
-    // });
-    
-    // For now we'll just log it
     toast.success(`Tracking click for ${productName}`);
   };
 
@@ -66,34 +67,34 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
       return;
     }
     
-    // In a real implementation, you would store this lead in your database
-    // Example: await saveLeadToDatabase(email, product.id, 'product_inquiry');
-    
-    console.log(`Lead captured: ${email} for product ${product.id}`);
-    toast.success("Thanks! We'll send you more information soon.");
-    
-    // Store lead in localStorage for demonstration
-    const leads = JSON.parse(localStorage.getItem('smartHomeLeads') || '[]');
-    leads.push({
-      email,
+    // Enhanced lead tracking
+    trackEvent({
+      eventType: 'lead_captured',
       productId: product.id,
       productName: product.name,
-      timestamp: new Date().toISOString()
     });
-    localStorage.setItem('smartHomeLeads', JSON.stringify(leads));
+    
+    toast.success("Thanks! We'll send you more information soon.");
     
     setShowLeadForm(false);
   };
 
   const handleCTAClick = () => {
     trackClick(product.id, product.name);
-    if (affiliateUrl) {
-      // Open affiliate link in new tab
+    
+    // If user data is already collected, proceed to affiliate link
+    if (isUserDataCollected && affiliateUrl) {
       window.open(affiliateUrl, '_blank');
     } else {
-      // If no affiliate link, show lead capture form
-      setShowLeadForm(true);
+      // Show user info form
+      setShowUserInfoForm(true);
     }
+  };
+
+  const handleUserFormComplete = () => {
+    setShowUserInfoForm(false);
+    
+    // The form component will handle redirecting to the affiliate URL
   };
 
   if (compact) {
@@ -254,16 +255,26 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
             <Button 
               onClick={handleCTAClick}
               size="sm"
-              className="rounded-full"
+              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-200"
             >
-              {product.serviceProvider ? 'Contact Provider' : 'View Deal'}
+              <ExternalLink size={16} className="mr-1" />
+              {product.serviceProvider ? 'Contact Provider' : 'View Best Deal'}
             </Button>
           )}
         </div>
       </div>
+      
+      {/* User info collection form */}
+      {showUserInfoForm && (
+        <UserInfoForm
+          onClose={() => setShowUserInfoForm(false)}
+          onComplete={handleUserFormComplete}
+          productName={product.name}
+          affiliateUrl={affiliateUrl}
+        />
+      )}
     </div>
   );
 };
 
 export default ProductCard;
-
