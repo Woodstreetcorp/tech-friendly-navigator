@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Filter, ChevronDown, ChevronUp, Check } from 'lucide-react';
@@ -376,20 +375,7 @@ const Recommendations = () => {
                               <h4 className="text-lg font-medium mb-4">Available Packages</h4>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {provider.packages.map((pkg, index) => (
-                                  <div key={index} className={`
-                                    border rounded-lg p-4 relative
-                                    ${provider.bestPackage && provider.bestPackage.name === pkg.name 
-                                      ? 'border-primary bg-primary/5' 
-                                      : 'border-border'
-                                    }
-                                  `}>
-                                    {provider.bestPackage && provider.bestPackage.name === pkg.name && (
-                                      <div className="absolute -top-3 right-4">
-                                        <span className="bg-primary text-white text-xs py-1 px-2 rounded-full">
-                                          Best Match
-                                        </span>
-                                      </div>
-                                    )}
+                                  <div key={index} className="border rounded-lg p-4 relative border-border">
                                     <h5 className="font-semibold mb-1">{pkg.name}</h5>
                                     <p className="text-primary font-bold">${pkg.price.toFixed(2)}/mo</p>
                                     <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
