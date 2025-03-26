@@ -12,6 +12,7 @@ import { UserProvider } from "./context/UserContext";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminLogin from "./pages/admin/AdminLogin";
 import ProductDetail from "./pages/ProductDetail";
+import ProviderDetail from "./pages/ProviderDetail";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/partners" element={<Partners />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
+            <Route path="/provider/:providerId" element={<ProviderDetail />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminPanel />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

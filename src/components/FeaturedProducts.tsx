@@ -161,7 +161,7 @@ const FeaturedProducts = () => {
                     {provider.description}
                   </p>
                   <Link 
-                    to={`/recommendations?provider=${provider.id}`}
+                    to={`/provider/${provider.id}`}
                     className="text-accent hover:text-accent/80 font-medium flex items-center w-fit"
                   >
                     <span>View Services</span>
