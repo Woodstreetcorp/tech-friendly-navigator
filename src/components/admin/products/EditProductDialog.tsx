@@ -11,6 +11,10 @@ type Product = {
   rating: number;
   price: number;
   description: string;
+  features?: string[];
+  compatibility?: string[];
+  recommended?: boolean;
+  recommendationReasons?: string[];
 };
 
 interface EditProductDialogProps {
