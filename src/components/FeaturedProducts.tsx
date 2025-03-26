@@ -119,7 +119,7 @@ const FeaturedProducts = () => {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-lg">${product.price}</span>
                   <Link 
-                    to={`/recommendations?product=${product.id}`}
+                    to={`/product/${product.id}`}
                     className="text-primary hover:text-primary/80 font-medium flex items-center"
                   >
                     <span>View</span>

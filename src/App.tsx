@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import { UserProvider } from "./context/UserContext";
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminLogin from "./pages/admin/AdminLogin";
+import ProductDetail from "./pages/ProductDetail";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/partners" element={<Partners />} />
+            <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminPanel />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
