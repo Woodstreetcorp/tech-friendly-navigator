@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { X, Plus } from 'lucide-react';
 import { ImageUploader } from '../common/ImageUploader';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Product = {
   id: string;
@@ -18,6 +20,7 @@ type Product = {
   compatibility?: string[];
   recommended?: boolean;
   recommendationReasons?: string[];
+  brand?: string;
 };
 
 interface ProductFormProps {
@@ -26,6 +29,11 @@ interface ProductFormProps {
   onSubmit: () => void;
   submitLabel: string;
 }
+
+// Sample categories and brands - in a real app this would come from your attributes database
+const categories = ['Security', 'Climate Control', 'Lighting', 'Smart Speakers', 'Entertainment', 'Home Automation'];
+const brands = ['Ring', 'Nest', 'Philips Hue', 'Amazon', 'Google', 'Apple', 'Samsung', 'Ecobee', 'Lutron', 'Sonos'];
+const compatibilityOptions = ['Amazon Alexa', 'Google Home', 'Apple HomeKit', 'Samsung SmartThings', 'IFTTT', 'Z-Wave', 'Zigbee'];
 
 export const ProductForm = ({ 
   product, 
@@ -92,14 +100,41 @@ export const ProductForm = ({
             onChange={(e) => onProductChange({...product, name: e.target.value})}
           />
         </div>
+
         <div className="space-y-2">
           <label htmlFor="category" className="text-sm font-medium">Category *</label>
-          <Input 
-            id="category" 
-            value={product.category || ''} 
-            onChange={(e) => onProductChange({...product, category: e.target.value})}
-          />
+          <Select 
+            value={product.category} 
+            onValueChange={(value) => onProductChange({...product, category: value})}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+
+        <div className="space-y-2">
+          <label htmlFor="brand" className="text-sm font-medium">Brand</label>
+          <Select 
+            value={product.brand} 
+            onValueChange={(value) => onProductChange({...product, brand: value})}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a brand" />
+            </SelectTrigger>
+            <SelectContent>
+              {brands.map((brand) => (
+                <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
         <div className="space-y-2">
           <label htmlFor="price" className="text-sm font-medium">Price *</label>
           <Input 
@@ -177,11 +212,33 @@ export const ProductForm = ({
         <div className="space-y-2 border-t pt-4 mt-2">
           <label className="text-sm font-medium">Compatible With</label>
           <div className="flex gap-2">
+            <Select
+              onValueChange={(value) => {
+                if (value && !product.compatibility?.includes(value)) {
+                  setNewCompatibility(value);
+                  const updatedCompatibility = [...(product.compatibility || []), value];
+                  onProductChange({...product, compatibility: updatedCompatibility});
+                }
+              }}
+              value=""
+            >
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder="Select compatibility" />
+              </SelectTrigger>
+              <SelectContent>
+                {compatibilityOptions
+                  .filter(option => !(product.compatibility || []).includes(option))
+                  .map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
             <Input 
-              placeholder="Add compatibility..." 
+              placeholder="Or type custom..." 
               value={newCompatibility} 
               onChange={(e) => setNewCompatibility(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCompatibility())}
+              className="flex-1"
             />
             <Button 
               type="button" 

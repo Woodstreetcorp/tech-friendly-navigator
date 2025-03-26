@@ -1,9 +1,11 @@
 
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductList } from './products/ProductList';
 import { AddProductDialog } from './products/AddProductDialog';
 import { EditProductDialog } from './products/EditProductDialog';
+import { AttributeManager } from './products/attributes/AttributeManager';
 
 // Sample products data (in a real app, this would come from your backend)
 const sampleProducts = [
@@ -52,6 +54,7 @@ export const ProductsManager = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [activeTab, setActiveTab] = useState('products');
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     name: '',
     category: '',
@@ -122,33 +125,46 @@ export const ProductsManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Products Management</h2>
-        <AddProductDialog 
-          isOpen={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          newProduct={newProduct}
-          onProductChange={setNewProduct}
-          onAddProduct={handleAddProduct}
-        />
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="attributes">Attributes</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="products" className="pt-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Products Management</h2>
+            <AddProductDialog 
+              isOpen={isAddDialogOpen}
+              onOpenChange={setIsAddDialogOpen}
+              newProduct={newProduct}
+              onProductChange={setNewProduct}
+              onAddProduct={handleAddProduct}
+            />
+          </div>
 
-      <ProductList 
-        products={products}
-        onEdit={(product) => {
-          setCurrentProduct(product);
-          setIsEditDialogOpen(true);
-        }}
-        onDelete={handleDeleteProduct}
-      />
+          <ProductList 
+            products={products}
+            onEdit={(product) => {
+              setCurrentProduct(product);
+              setIsEditDialogOpen(true);
+            }}
+            onDelete={handleDeleteProduct}
+          />
 
-      <EditProductDialog 
-        isOpen={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        currentProduct={currentProduct}
-        onProductChange={setCurrentProduct}
-        onEditProduct={handleEditProduct}
-      />
+          <EditProductDialog 
+            isOpen={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            currentProduct={currentProduct}
+            onProductChange={setCurrentProduct}
+            onEditProduct={handleEditProduct}
+          />
+        </TabsContent>
+        
+        <TabsContent value="attributes" className="pt-4">
+          <AttributeManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
