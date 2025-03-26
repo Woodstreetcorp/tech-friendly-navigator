@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check, ExternalLink, Star } from 'lucide-react';
@@ -10,7 +9,6 @@ import { useUser } from '@/context/UserContext';
 import UserInfoForm from '@/components/UserInfoForm';
 import { Product } from '@/components/ProductCard';
 
-// Sample product data - in a real app, this would come from an API or database
 const productsData: Product[] = [
   {
     id: 'prod1',
@@ -127,14 +125,12 @@ const ProductDetail = () => {
   const { trackEvent, isUserDataCollected } = useUser();
 
   useEffect(() => {
-    // Simulate API call to fetch product details
     setLoading(true);
     setTimeout(() => {
       const foundProduct = productsData.find(p => p.id === productId) || null;
       setProduct(foundProduct);
       setLoading(false);
       
-      // Track page view
       if (foundProduct) {
         trackEvent({
           eventType: 'product_detail_view',
@@ -160,18 +156,15 @@ const ProductDetail = () => {
     
     toast.success(`Tracking click for ${product.name}`);
     
-    // If user data is already collected, proceed to affiliate link
     if (isUserDataCollected && product.affiliateUrl) {
       window.open(product.affiliateUrl, '_blank');
     } else {
-      // Show user info form
       setShowUserInfoForm(true);
     }
   };
 
   const handleUserFormComplete = () => {
     setShowUserInfoForm(false);
-    // The form component will handle redirecting to the affiliate URL
   };
 
   if (loading) {
@@ -215,7 +208,6 @@ const ProductDetail = () => {
       <Header />
       <main className="flex-grow py-10">
         <div className="container-custom">
-          {/* Breadcrumb Navigation */}
           <div className="flex items-center mb-6 text-sm">
             <Link to="/" className="text-muted-foreground hover:text-primary">Home</Link>
             <span className="mx-2">/</span>
@@ -224,9 +216,7 @@ const ProductDetail = () => {
             <span className="text-foreground">{product.name}</span>
           </div>
           
-          {/* Product Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
-            {/* Product Image */}
             <div className="glass-card p-6 flex items-center justify-center">
               <img 
                 src={product.featuredImage} 
@@ -235,7 +225,6 @@ const ProductDetail = () => {
               />
             </div>
             
-            {/* Product Info */}
             <div className="space-y-6">
               <div>
                 <div className="flex items-center mb-2">
@@ -297,7 +286,6 @@ const ProductDetail = () => {
                 </Button>
               </div>
               
-              {/* Compatibility */}
               <div className="pt-4 border-t border-border">
                 <h3 className="font-semibold mb-2">Compatible with</h3>
                 <div className="flex flex-wrap gap-1">
@@ -314,7 +302,6 @@ const ProductDetail = () => {
             </div>
           </div>
           
-          {/* Features Section */}
           <div className="glass-card p-8 mb-16">
             <h2 className="text-2xl font-semibold mb-6">Key Features</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -331,7 +318,6 @@ const ProductDetail = () => {
       
       <Footer />
       
-      {/* User info collection form */}
       {showUserInfoForm && (
         <UserInfoForm
           onClose={() => setShowUserInfoForm(false)}
