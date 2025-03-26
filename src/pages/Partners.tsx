@@ -6,7 +6,8 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { useUser } from '../context/UserContext';
-import { Handshake, Users, TrendingUp } from 'lucide-react';
+import { Handshake, Users, TrendingUp, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Partners = () => {
   const { trackEvent } = useUser();
@@ -140,6 +141,23 @@ const Partners = () => {
                     over your commission rates while gaining access to our growing user base of smart home enthusiasts.
                   </p>
                   
+                  <div className="bg-primary/5 rounded-lg p-4 mb-6 border border-primary/20">
+                    <div className="flex items-start">
+                      <FileText className="h-5 w-5 text-primary mr-3 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium">Partner Agreement</h4>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          All partners must accept our standard agreement terms before getting started.
+                        </p>
+                        <Link to="/partner-agreement">
+                          <Button variant="outline" size="sm">
+                            View Partner Agreement
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <h3 className="text-xl font-semibold mb-4">Apply to Become a Partner</h3>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -227,6 +245,9 @@ const Partners = () => {
                       <Button type="submit" className="w-full">
                         Submit Application
                       </Button>
+                      <p className="text-xs text-center mt-2 text-muted-foreground">
+                        By submitting, you agree to our <Link to="/partner-agreement" className="text-primary hover:underline">Partner Agreement</Link>
+                      </p>
                     </div>
                   </form>
                 </div>

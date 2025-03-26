@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Recommendations from "./pages/Recommendations";
 import Partners from "./pages/Partners";
+import PartnerAgreement from "./pages/PartnerAgreement";
 import NotFound from "./pages/NotFound";
 import { UserProvider } from "./context/UserContext";
 import AdminPanel from "./pages/admin/AdminPanel";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/partners" element={<Partners />} />
+            <Route path="/partner-agreement" element={<PartnerAgreement />} />
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/provider/:providerId" element={<ProviderDetail />} />
             <Route path="/admin" element={<AdminLogin />} />
