@@ -5,8 +5,11 @@ import Footer from '../components/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
+import { useUser } from '../context/UserContext';
+import { HandShake, Users, TrendingUp } from 'lucide-react';
 
 const Partners = () => {
+  const { trackEvent } = useUser();
   const [formData, setFormData] = useState({
     companyName: '',
     contactName: '',
@@ -29,6 +32,13 @@ const Partners = () => {
     
     // In a real implementation, you would send this data to your backend
     console.log('Partner application:', formData);
+    
+    // Track the partner application event
+    trackEvent({
+      eventType: 'partner_application',
+      source: 'partners_page',
+      url: window.location.href
+    });
     
     // Store in localStorage for demonstration
     const partners = JSON.parse(localStorage.getItem('smartHomePartners') || '[]');
@@ -63,7 +73,7 @@ const Partners = () => {
             <div className="text-center mb-12">
               <h1 className="text-3xl md:text-4xl font-bold mb-4">Partner With Us</h1>
               <p className="text-lg text-muted-foreground">
-                Join our affiliate network and earn commissions by promoting your smart home products and services.
+                List your smart home products and services on our platform and reach thousands of potential customers.
               </p>
             </div>
             
@@ -71,30 +81,36 @@ const Partners = () => {
               <div className="space-y-8">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
-                    <h3 className="text-xl font-semibold mb-3">Why Partner With Us?</h3>
+                    <h3 className="text-xl font-semibold mb-3 flex items-center">
+                      <HandShake className="mr-2 h-5 w-5 text-primary" />
+                      Why Partner With Us?
+                    </h3>
                     <ul className="space-y-2">
                       <li className="flex items-start">
                         <span className="text-primary mr-2">✓</span>
-                        <span>Access to qualified leads interested in smart home solutions</span>
+                        <span>Reach thousands of qualified leads actively seeking smart home solutions</span>
                       </li>
                       <li className="flex items-start">
                         <span className="text-primary mr-2">✓</span>
-                        <span>Transparent commission structure with monthly payouts</span>
+                        <span>Get featured in our curated product recommendations</span>
                       </li>
                       <li className="flex items-start">
                         <span className="text-primary mr-2">✓</span>
-                        <span>Dedicated partner dashboard to track performance</span>
+                        <span>Access detailed analytics on customer engagement</span>
                       </li>
                       <li className="flex items-start">
                         <span className="text-primary mr-2">✓</span>
-                        <span>Marketing support and co-branding opportunities</span>
+                        <span>Enhance your brand visibility in the smart home market</span>
                       </li>
                     </ul>
                   </div>
                   <div className="md:w-1/2">
-                    <h3 className="text-xl font-semibold mb-3">Our Audience</h3>
+                    <h3 className="text-xl font-semibold mb-3 flex items-center">
+                      <Users className="mr-2 h-5 w-5 text-primary" />
+                      Our Audience
+                    </h3>
                     <div className="space-y-3">
-                      <p>Our platform attracts homeowners and renters across Canada who are actively looking for smart home solutions.</p>
+                      <p>Our platform connects your products with homeowners and renters across Canada who are actively looking for smart home solutions.</p>
                       <ul className="space-y-2">
                         <li className="flex items-start">
                           <span className="text-primary mr-2">•</span>
@@ -114,6 +130,16 @@ const Partners = () => {
                 </div>
                 
                 <div>
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <TrendingUp className="mr-2 h-5 w-5 text-primary" />
+                    How It Works
+                  </h3>
+                  <p className="mb-4">
+                    When you partner with us, your products or services get listed on our platform. We earn a commission 
+                    set by you when customers purchase through our referrals. You maintain control over your commission 
+                    structure while gaining access to our growing user base of smart home enthusiasts.
+                  </p>
+                  
                   <h3 className="text-xl font-semibold mb-4">Apply to Become a Partner</h3>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
