@@ -1,5 +1,9 @@
 
 import { Check } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { toast } from 'sonner';
 
 export type Product = {
   id: string;
@@ -14,6 +18,8 @@ export type Product = {
   rating: number;
   reviewCount: number;
   recommended?: boolean;
+  affiliateUrl?: string;
+  commissionRate?: number; // percentage of sale
 };
 
 type ProductCardProps = {
@@ -22,7 +28,64 @@ type ProductCardProps = {
 };
 
 const ProductCard = ({ product, compact = false }: ProductCardProps) => {
-  const { name, category, description, price, featuredImage, brand, features, compatibility, rating, reviewCount, recommended } = product;
+  const { name, category, description, price, featuredImage, brand, features, compatibility, rating, reviewCount, recommended, affiliateUrl } = product;
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [email, setEmail] = useState('');
+
+  const trackClick = (productId: string, productName: string) => {
+    // Track click for analytics
+    console.log(`Product click tracked: ${productId} - ${productName}`);
+    
+    // In a real implementation, you would send this data to your analytics service
+    // Example: 
+    // Analytics.trackEvent('product_click', { 
+    //   productId, 
+    //   productName,
+    //   timestamp: new Date().toISOString(),
+    //   commissionRate: product.commissionRate
+    // });
+    
+    // For now we'll just log it
+    toast.success(`Tracking click for ${productName}`);
+  };
+
+  const handleLeadCapture = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast.error("Please enter your email");
+      return;
+    }
+    
+    // In a real implementation, you would store this lead in your database
+    // Example: await saveLeadToDatabase(email, product.id, 'product_inquiry');
+    
+    console.log(`Lead captured: ${email} for product ${product.id}`);
+    toast.success("Thanks! We'll send you more information soon.");
+    
+    // Store lead in localStorage for demonstration
+    const leads = JSON.parse(localStorage.getItem('smartHomeLeads') || '[]');
+    leads.push({
+      email,
+      productId: product.id,
+      productName: product.name,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem('smartHomeLeads', JSON.stringify(leads));
+    
+    setShowLeadForm(false);
+  };
+
+  const handleCTAClick = () => {
+    trackClick(product.id, product.name);
+    if (affiliateUrl) {
+      // Open affiliate link in new tab
+      window.open(affiliateUrl, '_blank');
+    } else {
+      // If no affiliate link, show lead capture form
+      setShowLeadForm(true);
+    }
+  };
 
   if (compact) {
     return (
@@ -147,9 +210,29 @@ const ProductCard = ({ product, compact = false }: ProductCardProps) => {
         
         <div className="mt-6 flex items-center justify-between pt-4 border-t border-border">
           <span className="text-xl font-semibold">${price.toFixed(2)}</span>
-          <button className="py-2 px-4 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors text-sm">
-            Learn More
-          </button>
+          
+          {showLeadForm ? (
+            <form onSubmit={handleLeadCapture} className="flex gap-2">
+              <Input 
+                type="email" 
+                placeholder="Your email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="max-w-[200px]"
+              />
+              <Button type="submit" size="sm">
+                Get Deal
+              </Button>
+            </form>
+          ) : (
+            <Button 
+              onClick={handleCTAClick}
+              size="sm"
+              className="rounded-full"
+            >
+              View Deal
+            </Button>
+          )}
         </div>
       </div>
     </div>
