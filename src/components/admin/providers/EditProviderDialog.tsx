@@ -12,6 +12,10 @@ type Provider = {
   description: string;
   website: string;
   contactEmail: string;
+  features?: string[];
+  compatibility?: string[];
+  recommended?: boolean;
+  recommendationReasons?: string[];
 };
 
 interface EditProviderDialogProps {
@@ -33,7 +37,7 @@ export const EditProviderDialog = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Service Provider</DialogTitle>
         </DialogHeader>

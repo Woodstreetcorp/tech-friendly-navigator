@@ -15,7 +15,11 @@ const sampleProviders = [
     rating: 4.8,
     description: 'Professional installation and monitoring for complete home security.',
     website: 'https://bell.ca/smart-home',
-    contactEmail: 'info@bellsmarthome.ca'
+    contactEmail: 'info@bellsmarthome.ca',
+    features: ['Professional Installation', '24/7 Monitoring', 'Mobile App Control'],
+    compatibility: ['Google Home', 'Amazon Alexa', 'Apple HomeKit'],
+    recommended: true,
+    recommendationReasons: ['Top-rated service', 'Comprehensive coverage', 'Excellent customer support']
   },
   {
     id: 'prov2',
@@ -25,7 +29,10 @@ const sampleProviders = [
     rating: 4.6,
     description: '24/7 professional monitoring and smart home integration.',
     website: 'https://rogers.com/smart-home',
-    contactEmail: 'support@rogers.com'
+    contactEmail: 'support@rogers.com',
+    features: ['DIY Installation Option', 'Professional Installation', 'Mobile App'],
+    compatibility: ['Google Home', 'Amazon Alexa'],
+    recommended: false
   }
 ];
 
@@ -43,7 +50,11 @@ export const ProvidersManager = () => {
     description: '',
     image: '/placeholder.svg',
     website: '',
-    contactEmail: ''
+    contactEmail: '',
+    features: [],
+    compatibility: [],
+    recommended: false,
+    recommendationReasons: []
   });
 
   const handleAddProvider = () => {
@@ -61,7 +72,11 @@ export const ProvidersManager = () => {
       image: newProvider.image || '/placeholder.svg',
       description: newProvider.description || '',
       website: newProvider.website || '',
-      contactEmail: newProvider.contactEmail || ''
+      contactEmail: newProvider.contactEmail || '',
+      features: newProvider.features || [],
+      compatibility: newProvider.compatibility || [],
+      recommended: newProvider.recommended || false,
+      recommendationReasons: newProvider.recommendationReasons || []
     } as Provider;
 
     setProviders([...providers, providerToAdd]);
@@ -72,7 +87,11 @@ export const ProvidersManager = () => {
       description: '',
       image: '/placeholder.svg',
       website: '',
-      contactEmail: ''
+      contactEmail: '',
+      features: [],
+      compatibility: [],
+      recommended: false,
+      recommendationReasons: []
     });
     setIsAddDialogOpen(false);
     

@@ -14,6 +14,10 @@ type Provider = {
   description: string;
   website: string;
   contactEmail: string;
+  features?: string[];
+  compatibility?: string[];
+  recommended?: boolean;
+  recommendationReasons?: string[];
 };
 
 interface AddProviderDialogProps {
@@ -39,7 +43,7 @@ export const AddProviderDialog = ({
           Add Provider
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Service Provider</DialogTitle>
         </DialogHeader>
