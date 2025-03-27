@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, AlertCircle } from 'lucide-react';
+import { ChevronRight, AlertCircle, PlusCircle, Check } from 'lucide-react';
 
 export type QuestionOption = {
   id: string;
   label: string;
   value: string | number | boolean;
+  services?: Array<{
+    id: string;
+    label: string;
+    value: string;
+  }>;
 };
 
 export type Question = {
   id: string;
   question: string;
   description?: string;
-  type: 'single-select' | 'multi-select' | 'range';
+  type: 'single-select' | 'multi-select' | 'range' | 'provider-services';
   options?: QuestionOption[];
   min?: number;
   max?: number;
@@ -30,10 +35,11 @@ type QuizQuestionProps = {
 };
 
 const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestionProps) => {
-  const [selected, setSelected] = useState<any>(currentValue || (question.type === 'multi-select' ? [] : ''));
+  const [selected, setSelected] = useState<any>(currentValue || (question.type === 'multi-select' ? [] : question.type === 'provider-services' ? {} : ''));
   const [isValid, setIsValid] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [expandedProviders, setExpandedProviders] = useState<string[]>([]);
 
   useEffect(() => {
     setAnimate(true);
@@ -43,6 +49,14 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
       setIsValid(Array.isArray(selected) && selected.length > 0);
     } else if (question.type === 'range') {
       setIsValid(selected !== '');
+    } else if (question.type === 'provider-services') {
+      // For provider-services, it's valid if either 'none' is selected or at least one provider is selected
+      if (selected.none) {
+        setIsValid(true);
+      } else {
+        const hasSelectedProvider = Object.keys(selected).length > 0;
+        setIsValid(hasSelectedProvider);
+      }
     } else {
       setIsValid(!!selected);
     }
@@ -52,6 +66,43 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
   }, [selected, question.type]);
 
   const handleSelectOption = (option: QuestionOption) => {
+    if (question.type === 'provider-services') {
+      if (option.value === 'none') {
+        // If 'none' is selected, clear all other selections
+        setSelected({ none: true });
+        onAnswer(question.id, { none: true });
+        
+        // Collapse all expanded providers
+        setExpandedProviders([]);
+      } else {
+        // If a provider is selected, remove 'none' selection if it exists
+        const newSelected = { ...selected };
+        delete newSelected.none;
+        
+        // Toggle provider selection
+        if (newSelected[option.value]) {
+          // If already selected, remove provider and its services
+          delete newSelected[option.value];
+          
+          // Remove from expanded list if it was expanded
+          setExpandedProviders(expandedProviders.filter(id => id !== option.id));
+        } else {
+          // Initialize provider with empty services array
+          newSelected[option.value] = [];
+          
+          // Expand the provider to show services
+          if (!expandedProviders.includes(option.id)) {
+            setExpandedProviders([...expandedProviders, option.id]);
+          }
+        }
+        
+        setSelected(newSelected);
+        onAnswer(question.id, newSelected);
+      }
+      
+      return;
+    }
+    
     if (question.type === 'multi-select') {
       let newSelected: any[] = [];
       
@@ -114,6 +165,34 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
     }
   };
 
+  const toggleProviderExpansion = (providerId: string) => {
+    if (expandedProviders.includes(providerId)) {
+      setExpandedProviders(expandedProviders.filter(id => id !== providerId));
+    } else {
+      setExpandedProviders([...expandedProviders, providerId]);
+    }
+  };
+
+  const handleServiceSelection = (providerValue: string, serviceValue: string) => {
+    const newSelected = { ...selected };
+    
+    if (!newSelected[providerValue]) {
+      newSelected[providerValue] = [];
+    }
+    
+    // Toggle service selection
+    if (newSelected[providerValue].includes(serviceValue)) {
+      newSelected[providerValue] = newSelected[providerValue].filter(
+        (service: string) => service !== serviceValue
+      );
+    } else {
+      newSelected[providerValue] = [...newSelected[providerValue], serviceValue];
+    }
+    
+    setSelected(newSelected);
+    onAnswer(question.id, newSelected);
+  };
+
   const handleRangeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     setSelected(value);
@@ -127,13 +206,38 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
   };
 
   const isOptionSelected = (option: QuestionOption) => {
+    if (question.type === 'provider-services') {
+      if (option.value === 'none') {
+        return !!selected.none;
+      }
+      return !!selected[option.value];
+    }
+    
     if (question.type === 'multi-select' && Array.isArray(selected)) {
       return selected.includes(option.value);
     }
     return selected === option.value;
   };
 
+  const isServiceSelected = (providerValue: string, serviceValue: string) => {
+    return selected[providerValue]?.includes(serviceValue) || false;
+  };
+
   const isOptionDisabled = (option: QuestionOption) => {
+    if (question.type === 'provider-services') {
+      // Disable 'none' if other providers are selected
+      if (option.value === 'none' && Object.keys(selected).length > 0 && !selected.none) {
+        return true;
+      }
+      
+      // Disable providers if 'none' is selected
+      if (option.value !== 'none' && selected.none) {
+        return true;
+      }
+      
+      return false;
+    }
+    
     if (question.type === 'multi-select' && question.conditionalSelections) {
       const { exclusive, regular } = question.conditionalSelections;
       const optionValue = option.value.toString();
@@ -170,7 +274,99 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
         )}
 
         <div className="space-y-4">
-          {question.type === 'range' ? (
+          {question.type === 'provider-services' ? (
+            <div className="space-y-3">
+              {question.options?.map((option) => {
+                const isSelected = isOptionSelected(option);
+                const isDisabled = isOptionDisabled(option);
+                const isExpanded = expandedProviders.includes(option.id) && isSelected;
+                
+                return (
+                  <div key={option.id} className="space-y-2">
+                    <button
+                      onClick={() => handleSelectOption(option)}
+                      disabled={isDisabled}
+                      className={`
+                        w-full text-left p-4 rounded-xl border transition-all duration-200
+                        ${isSelected
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : isDisabled
+                            ? 'border-border bg-muted cursor-not-allowed opacity-60'
+                            : 'border-border hover:border-primary/30 hover:bg-secondary/50'
+                        }
+                      `}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className={`
+                            w-5 h-5 rounded-full mr-3 flex items-center justify-center
+                            ${isSelected
+                              ? 'bg-primary text-white'
+                              : 'border border-muted-foreground/40'
+                            }
+                          `}>
+                            {isSelected && (
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8.5 2.5L3.5 7.5L1.5 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
+                          </div>
+                          <span className="font-medium">{option.label}</span>
+                        </div>
+                        
+                        {isSelected && option.services && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleProviderExpansion(option.id);
+                            }}
+                            className="text-primary hover:text-primary/70 p-1"
+                          >
+                            {isExpanded ? 'Hide services' : 'Select services'}
+                          </button>
+                        )}
+                      </div>
+                    </button>
+                    
+                    {isExpanded && option.services && (
+                      <div className="pl-8 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Select the services you currently have with {option.label}:
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {option.services.map((service) => (
+                            <button
+                              key={service.id}
+                              onClick={() => handleServiceSelection(option.value as string, service.value as string)}
+                              className={`
+                                flex items-center p-2 rounded-md border text-sm
+                                ${isServiceSelected(option.value as string, service.value as string)
+                                  ? 'border-primary bg-primary/10 text-primary'
+                                  : 'border-border hover:border-primary/30 hover:bg-secondary/30'
+                                }
+                              `}
+                            >
+                              <div className={`
+                                w-4 h-4 mr-2 rounded flex items-center justify-center
+                                ${isServiceSelected(option.value as string, service.value as string)
+                                  ? 'bg-primary text-white'
+                                  : 'border border-muted-foreground/40'
+                                }
+                              `}>
+                                {isServiceSelected(option.value as string, service.value as string) && <Check size={12} />}
+                              </div>
+                              {service.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : question.type === 'range' ? (
             <div className="space-y-4">
               <input 
                 type="range" 

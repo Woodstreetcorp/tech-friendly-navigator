@@ -20,6 +20,10 @@ type Product = {
   commissionRate?: number;
   affiliateId?: string;
   serviceProvider?: string;
+  bundleEligible?: boolean;
+  bundleProviders?: string[];
+  bundleDiscountType?: 'percentage' | 'fixed';
+  bundleDiscountValue?: number;
 };
 
 interface EditProductDialogProps {

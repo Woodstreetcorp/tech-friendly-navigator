@@ -579,12 +579,47 @@ export const serviceProviders = [
   },
 ];
 
+// Sample bundle offers data
+export const bundleOffers = [
+  {
+    id: 'bundle1',
+    name: 'TELUS Complete Home Security Bundle',
+    description: 'Save on smart home security devices when you have TELUS Home Internet and Mobile services.',
+    serviceProvider: 'telus',
+    requiredServices: ['internet', 'mobile'],
+    eligibleProductCategories: ['security'],
+    discountType: 'percentage',
+    discountValue: 15,
+    active: true,
+    startDate: '2023-10-01',
+    endDate: '2024-12-31',
+    termsAndConditions: 'Must be an active TELUS Home Internet and Mobile customer. Cannot be combined with other offers.'
+  },
+  {
+    id: 'bundle2',
+    name: 'Rogers Smart Home Starter Bundle',
+    description: 'Get a discount on smart home entertainment products when you have Rogers TV and Internet.',
+    serviceProvider: 'rogers',
+    requiredServices: ['internet', 'tv'],
+    eligibleProductCategories: ['entertainment'],
+    discountType: 'fixed',
+    discountValue: 50,
+    active: true,
+    startDate: '2023-11-15',
+    endDate: '2024-11-15',
+    termsAndConditions: 'Requires Rogers Ignite TV and Internet services. One-time discount only.',
+    promoCode: 'ROGERS50'
+  }
+];
+
 export type UserAnswers = Record<string, any>;
 
 export type RecommendationResult = {
   products: Product[];
   serviceProviders: typeof serviceProviders;
   quizAnswers: UserAnswers;
+  bundleOffers?: typeof bundleOffers;
+  eligibleBundles?: typeof bundleOffers;
 };
 
 // Enhanced mapping of user goals to relevant product categories and subcategories
@@ -804,6 +839,89 @@ export const generateRecommendations = (answers: UserAnswers): RecommendationRes
     product.recommended = productScores[product.id] >= recommendationThreshold;
   });
   
+  // Apply bundle offers if the user has selected existing service providers
+  let eligibleBundles: typeof bundleOffers = [];
+  let productDiscounts: Record<string, { bundleId: string, discountType: string, discountValue: number }> = {};
+  
+  if (answers['current-providers'] && Object.keys(answers['current-providers']).length > 0) {
+    // Filter to active bundle offers only
+    const activeOffers = bundleOffers.filter(offer => {
+      const now = new Date();
+      const startDate = new Date(offer.startDate);
+      const endDate = new Date(offer.endDate);
+      return offer.active && now >= startDate && now <= endDate;
+    });
+    
+    // Check each offer against the user's current services
+    for (const offer of activeOffers) {
+      const provider = offer.serviceProvider;
+      
+      // Skip if user doesn't have this provider
+      if (!answers['current-providers'][provider]) continue;
+      
+      // Get user's services with this provider
+      const userServices = answers['current-providers'][provider] || [];
+      
+      // Check if the user has all required services
+      const hasAllRequiredServices = offer.requiredServices.every(requiredService => 
+        userServices.includes(requiredService)
+      );
+      
+      if (hasAllRequiredServices) {
+        // User is eligible for this bundle!
+        eligibleBundles.push(offer);
+        
+        // Apply discount to eligible products
+        recommendedProducts.forEach(product => {
+          if (offer.eligibleProductCategories.includes(product.category.toLowerCase())) {
+            // Add bundle explanation to product
+            if (!product.recommendationReasons) {
+              product.recommendationReasons = [];
+            }
+            
+            // Add bundle discount reason if not already there
+            const bundleReason = `Eligible for ${offer.discountType === 'percentage' ? offer.discountValue + '% off' : '$' + offer.discountValue + ' off'} with ${provider.toUpperCase()} bundle`;
+            if (!product.recommendationReasons.includes(bundleReason)) {
+              product.recommendationReasons.push(bundleReason);
+            }
+            
+            // Boost score for bundle-eligible products
+            productScores[product.id] += 20;
+            
+            // Track which discount to apply
+            productDiscounts[product.id] = {
+              bundleId: offer.id,
+              discountType: offer.discountType, 
+              discountValue: offer.discountValue
+            };
+          }
+        });
+      }
+    }
+  }
+  
+  // Apply scores to determine recommendations
+  recommendedProducts.forEach(product => {
+    // Mark products as recommended if they score over a threshold
+    // The threshold could be absolute or relative to the highest score
+    const recommendationThreshold = Math.max(...Object.values(productScores)) * 0.7; // 70% of top score
+    product.recommended = productScores[product.id] >= recommendationThreshold;
+    
+    // Apply bundle discounts to eligible products
+    if (productDiscounts[product.id]) {
+      const discount = productDiscounts[product.id];
+      const originalPrice = product.price;
+      
+      if (discount.discountType === 'percentage') {
+        product.bundleDiscountedPrice = originalPrice * (1 - discount.discountValue / 100);
+      } else { // fixed discount
+        product.bundleDiscountedPrice = Math.max(0, originalPrice - discount.discountValue);
+      }
+      
+      product.bundleId = discount.bundleId;
+    }
+  });
+  
   // Sort products by score (descending)
   recommendedProducts.sort((a, b) => 
     (productScores[b.id] || 0) - (productScores[a.id] || 0)
@@ -861,7 +979,9 @@ export const generateRecommendations = (answers: UserAnswers): RecommendationRes
   return {
     products: recommendedProducts,
     serviceProviders: recommendedProviders,
-    quizAnswers: answers
+    quizAnswers: answers,
+    bundleOffers: bundleOffers,
+    eligibleBundles: eligibleBundles
   };
 };
 

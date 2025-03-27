@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
@@ -38,6 +37,72 @@ const quizQuestions: Question[] = [
       { id: 'small', label: 'Less than 1,000 sq. ft.', value: 'small' },
       { id: 'medium', label: '1,000–2,000 sq. ft.', value: 'medium' },
       { id: 'large', label: 'Over 2,000 sq. ft.', value: 'large' },
+    ],
+  },
+  {
+    id: 'current-providers',
+    question: 'Which service providers are you currently using?',
+    description: 'This helps us find bundle discounts that may be available to you.',
+    type: 'provider-services',
+    options: [
+      { 
+        id: 'telus', 
+        label: 'TELUS', 
+        value: 'telus',
+        services: [
+          { id: 'internet', label: 'Home Internet', value: 'internet' },
+          { id: 'tv', label: 'TV Services', value: 'tv' },
+          { id: 'phone', label: 'Home Phone', value: 'phone' },
+          { id: 'mobile', label: 'Mobile Phone', value: 'mobile' },
+          { id: 'security', label: 'Home Security', value: 'security' }
+        ]
+      },
+      { 
+        id: 'bell', 
+        label: 'Bell', 
+        value: 'bell',
+        services: [
+          { id: 'internet', label: 'Home Internet', value: 'internet' },
+          { id: 'tv', label: 'TV Services', value: 'tv' },
+          { id: 'phone', label: 'Home Phone', value: 'phone' },
+          { id: 'mobile', label: 'Mobile Phone', value: 'mobile' },
+          { id: 'security', label: 'Home Security', value: 'security' }
+        ]
+      },
+      { 
+        id: 'rogers', 
+        label: 'Rogers', 
+        value: 'rogers',
+        services: [
+          { id: 'internet', label: 'Home Internet', value: 'internet' },
+          { id: 'tv', label: 'TV Services', value: 'tv' },
+          { id: 'phone', label: 'Home Phone', value: 'phone' },
+          { id: 'mobile', label: 'Mobile Phone', value: 'mobile' },
+          { id: 'security', label: 'Home Security', value: 'security' }
+        ]
+      },
+      { 
+        id: 'shaw', 
+        label: 'Shaw', 
+        value: 'shaw',
+        services: [
+          { id: 'internet', label: 'Home Internet', value: 'internet' },
+          { id: 'tv', label: 'TV Services', value: 'tv' },
+          { id: 'phone', label: 'Home Phone', value: 'phone' }
+        ]
+      },
+      { 
+        id: 'videotron', 
+        label: 'Videotron', 
+        value: 'videotron',
+        services: [
+          { id: 'internet', label: 'Home Internet', value: 'internet' },
+          { id: 'tv', label: 'TV Services', value: 'tv' },
+          { id: 'phone', label: 'Home Phone', value: 'phone' },
+          { id: 'mobile', label: 'Mobile Phone', value: 'mobile' }
+        ]
+      },
+      { id: 'none', label: 'None of these providers', value: 'none' }
     ],
   },
   {
@@ -191,7 +256,6 @@ const Quiz = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Calculate progress percentage
     setProgress(((currentQuestionIndex) / quizQuestions.length) * 100);
   }, [currentQuestionIndex]);
 
@@ -204,7 +268,6 @@ const Quiz = () => {
       setCurrentQuestionIndex(prev => prev + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Quiz completed
       completeQuiz();
     }
   };
@@ -219,13 +282,11 @@ const Quiz = () => {
     try {
       const recommendations = generateRecommendations(answers);
       
-      // Store recommendations in localStorage for the recommendations page
       localStorage.setItem('smartHomeRecommendations', JSON.stringify(recommendations));
       localStorage.setItem('quizAnswers', JSON.stringify(answers));
       
       toast.success("Your personalized recommendations are ready!");
       
-      // Navigate to recommendations page
       navigate('/recommendations');
     } catch (error) {
       console.error("Error generating recommendations:", error);
@@ -237,7 +298,6 @@ const Quiz = () => {
 
   return (
     <div className="pb-20 pt-32 px-4">
-      {/* Progress bar */}
       <div className="container-custom mb-8">
         <div className="max-w-2xl mx-auto space-y-2">
           <div className="flex justify-between items-center text-sm">
@@ -253,7 +313,6 @@ const Quiz = () => {
         </div>
       </div>
 
-      {/* Back button */}
       {currentQuestionIndex > 0 && (
         <div className="container-custom mb-6">
           <div className="max-w-2xl mx-auto">
@@ -268,7 +327,6 @@ const Quiz = () => {
         </div>
       )}
 
-      {/* Current question */}
       <div className="container-custom">
         <QuizQuestion
           question={currentQuestion}
