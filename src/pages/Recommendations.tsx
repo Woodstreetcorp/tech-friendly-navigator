@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Filter, ChevronDown, ChevronUp, Check, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Filter, ChevronDown, ChevronUp, Check, ExternalLink, Shield, Zap, Clock, Award, Star } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ProductCard, { Product } from '../components/ProductCard';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useUser } from '../context/UserContext';
 import UserInfoForm from '../components/UserInfoForm';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Recommendations = () => {
   const navigate = useNavigate();
@@ -153,6 +154,19 @@ const Recommendations = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
+  };
+  
+  // Helper function to get icon for feature
+  const getFeatureIcon = (feature: string) => {
+    if (feature.toLowerCase().includes('protect') || feature.toLowerCase().includes('secur')) 
+      return <Shield size={14} className="text-primary mr-1 flex-shrink-0" />;
+    if (feature.toLowerCase().includes('fast') || feature.toLowerCase().includes('speed'))
+      return <Zap size={14} className="text-primary mr-1 flex-shrink-0" />;
+    if (feature.toLowerCase().includes('24/7') || feature.toLowerCase().includes('support') || feature.toLowerCase().includes('hour'))
+      return <Clock size={14} className="text-primary mr-1 flex-shrink-0" />;
+    if (feature.toLowerCase().includes('premium') || feature.toLowerCase().includes('best'))
+      return <Award size={14} className="text-primary mr-1 flex-shrink-0" />;
+    return <Check size={14} className="text-primary mr-1 flex-shrink-0" />;
   };
   
   if (loading) {
@@ -494,73 +508,152 @@ const Recommendations = () => {
                   <h2 className="text-2xl font-bold mb-6">Recommended Service Providers</h2>
                   <div className="grid grid-cols-1 gap-6">
                     {recommendations.serviceProviders.map((provider) => (
-                      <div key={provider.id} className="glass-card overflow-hidden">
+                      <Card key={provider.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
                         <div className="p-6">
-                          <h3 className="text-xl font-semibold mb-2">{provider.name}</h3>
-                          <p className="text-muted-foreground mb-4">{provider.description}</p>
-                          
-                          {/* Package details */}
-                          {provider.packages && (
-                            <div className="mt-6">
-                              <h4 className="text-lg font-medium mb-4">Available Packages</h4>
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {provider.packages.map((pkg, index) => (
-                                  <div key={index} className="border rounded-lg p-4 relative border-border hover:shadow-md transition-shadow duration-200">
-                                    {index === 0 && (
-                                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                                        <span className="bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
-                                          BEST VALUE
-                                        </span>
-                                      </div>
-                                    )}
-                                    <h5 className="font-semibold mb-1">{pkg.name}</h5>
-                                    <p className="text-primary font-bold">${pkg.price.toFixed(2)}/mo</p>
-                                    <p className="text-sm text-muted-foreground mb-3">{pkg.description}</p>
-                                    <ul className="space-y-1">
-                                      {pkg.features.map((feature, i) => (
-                                        <li key={i} className="flex items-start text-sm">
-                                          <Check size={14} className="mr-1 text-primary mt-0.5 flex-shrink-0" />
-                                          <span>{feature}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
+                          <div className="flex flex-col md:flex-row gap-6">
+                            {/* Provider logo and basics */}
+                            <div className="md:w-1/4">
+                              <div className="bg-primary/5 rounded-lg p-4 flex items-center justify-center h-full">
+                                <div className="text-center">
+                                  <div className="w-24 h-24 mx-auto mb-3 bg-white rounded-full shadow-sm p-2 flex items-center justify-center">
+                                    <img 
+                                      src={provider.logo || `/placeholder.svg`} 
+                                      alt={provider.name} 
+                                      className="max-w-full max-h-full object-contain"
+                                    />
                                   </div>
-                                ))}
+                                  <h3 className="text-xl font-semibold mb-1">{provider.name}</h3>
+                                  
+                                  {/* Ratings */}
+                                  <div className="flex items-center justify-center space-x-1 mb-2">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star 
+                                        key={i} 
+                                        size={16} 
+                                        className={i < (provider.rating || 4) ? "fill-primary text-primary" : "text-gray-300"} 
+                                      />
+                                    ))}
+                                  </div>
+                                  
+                                  {/* Compatibility badges */}
+                                  <div className="flex flex-wrap justify-center gap-1 mt-3">
+                                    {provider.compatibleEcosystems?.map((eco, idx) => (
+                                      <span 
+                                        key={idx}
+                                        className="inline-flex items-center py-0.5 px-2 rounded-full text-xs font-medium bg-secondary text-foreground"
+                                      >
+                                        {eco === 'amazon' ? 'Alexa' : 
+                                         eco === 'google' ? 'Google Home' : 
+                                         eco === 'apple' ? 'HomeKit' : 'Other'}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                              {provider.requiresContract && (
-                                <p className="text-sm text-muted-foreground mt-4">
-                                  <span className="font-medium">Note:</span> Requires a {provider.contractLength}-month contract. 
-                                  {provider.installationFee > 0 && 
-                                    ` Installation fee: ${formatPrice(provider.installationFee)}.`
-                                  }
-                                </p>
-                              )}
                             </div>
-                          )}
-                          
-                          <div className="mt-6 flex justify-between items-center">
-                            <div className="flex flex-wrap gap-2">
-                              {provider.compatibleEcosystems?.map((eco, idx) => (
-                                <span 
-                                  key={idx}
-                                  className="inline-flex items-center py-0.5 px-2 rounded-md text-xs font-medium bg-secondary text-foreground"
-                                >
-                                  {eco === 'amazon' ? 'Alexa' : 
-                                   eco === 'google' ? 'Google Home' : 
-                                   eco === 'apple' ? 'HomeKit' : 'Other'} Compatible
-                                </span>
-                              ))}
+                            
+                            {/* Provider details and features */}
+                            <div className="md:w-3/4">
+                              <div className="flex flex-col h-full">
+                                <p className="text-muted-foreground mb-4">{provider.description}</p>
+                                
+                                {/* Provider highlights */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                  {provider.highlights && provider.highlights.map((highlight, idx) => (
+                                    <div key={idx} className="flex items-start">
+                                      {getFeatureIcon(highlight)}
+                                      <span>{highlight}</span>
+                                    </div>
+                                  ))}
+                                  
+                                  {/* If no highlights specified, display some default ones based on data */}
+                                  {(!provider.highlights || provider.highlights.length === 0) && (
+                                    <>
+                                      <div className="flex items-start">
+                                        <Shield size={14} className="text-primary mr-1 flex-shrink-0" />
+                                        <span>Professional {provider.type || 'Security'} Services</span>
+                                      </div>
+                                      <div className="flex items-start">
+                                        <Clock size={14} className="text-primary mr-1 flex-shrink-0" />
+                                        <span>24/7 Customer Support</span>
+                                      </div>
+                                      <div className="flex items-start">
+                                        <Zap size={14} className="text-primary mr-1 flex-shrink-0" />
+                                        <span>Fast & Reliable Installation</span>
+                                      </div>
+                                      <div className="flex items-start">
+                                        <Award size={14} className="text-primary mr-1 flex-shrink-0" />
+                                        <span>{provider.contractLength ? provider.contractLength + '-month warranty' : 'Industry-leading warranty'}</span>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                                
+                                {/* Packages */}
+                                {provider.packages && provider.packages.length > 0 && (
+                                  <div className="mt-auto">
+                                    <h4 className="text-lg font-medium mb-3">Available Packages</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                      {provider.packages.map((pkg, index) => (
+                                        <div 
+                                          key={index} 
+                                          className={`border rounded-lg p-3 relative hover:border-primary/30 transition-colors ${
+                                            index === 0 ? 'border-primary/30 bg-primary/5' : 'border-border'
+                                          }`}
+                                        >
+                                          {index === 0 && (
+                                            <div className="absolute -top-2.5 left-1/2 transform -translate-x-1/2">
+                                              <span className="bg-primary text-white text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                                                MOST POPULAR
+                                              </span>
+                                            </div>
+                                          )}
+                                          <h5 className="font-semibold mb-1">{pkg.name}</h5>
+                                          <p className="text-primary font-bold mb-1">${pkg.price.toFixed(2)}/mo</p>
+                                          <p className="text-xs text-muted-foreground mb-2">{pkg.description}</p>
+                                          <ul className="space-y-1 text-sm">
+                                            {pkg.features.slice(0, 3).map((feature, i) => (
+                                              <li key={i} className="flex items-start">
+                                                <Check size={12} className="mr-1 text-primary mt-0.5 flex-shrink-0" />
+                                                <span>{feature}</span>
+                                              </li>
+                                            ))}
+                                            {pkg.features.length > 3 && (
+                                              <li className="text-xs text-primary hover:underline cursor-pointer">
+                                                +{pkg.features.length - 3} more features
+                                              </li>
+                                            )}
+                                          </ul>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    
+                                    {provider.requiresContract && (
+                                      <p className="text-xs text-muted-foreground mt-2">
+                                        <span className="font-medium">Note:</span> {provider.contractLength}-month contract required. 
+                                        {provider.installationFee > 0 && 
+                                          ` Installation fee: ${formatPrice(provider.installationFee)}.`
+                                        }
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* CTA Button */}
+                                <div className="mt-4 flex justify-end">
+                                  <Button
+                                    onClick={() => handleProviderClick(provider.id, provider.name, provider.website)}
+                                    className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-200"
+                                  >
+                                    <ExternalLink size={16} className="mr-1.5" />
+                                    View Plans & Pricing
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
-                            <Button
-                              onClick={() => handleProviderClick(provider.id, provider.name, provider.website)}
-                              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-200"
-                            >
-                              <ExternalLink size={16} className="mr-1" />
-                              View Plans
-                            </Button>
                           </div>
                         </div>
-                      </div>
+                      </Card>
                     ))}
                   </div>
                 </div>
