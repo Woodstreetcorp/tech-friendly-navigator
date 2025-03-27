@@ -60,6 +60,14 @@ const Header = () => {
               Recommendations
             </Link>
             <Link 
+              to="/talk-to-advisor" 
+              className={`transition-colors hover:text-primary ${
+                location.pathname === '/talk-to-advisor' ? 'text-primary font-medium' : 'text-foreground/80'
+              }`}
+            >
+              Talk to an Advisor
+            </Link>
+            <Link 
               to="/about-us" 
               className={`transition-colors hover:text-primary ${
                 location.pathname === '/about-us' ? 'text-primary font-medium' : 'text-foreground/80'
@@ -67,12 +75,12 @@ const Header = () => {
             >
               About Us
             </Link>
-            <a 
-              href="#" 
+            <Link 
+              to="/talk-to-advisor" 
               className="py-2 px-4 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
             >
               Get Started
-            </a>
+            </Link>
           </nav>
           
           {/* Mobile Menu Button */}
@@ -107,6 +115,14 @@ const Header = () => {
               Recommendations
             </Link>
             <Link 
+              to="/talk-to-advisor" 
+              className={`py-2 px-4 rounded-lg ${
+                location.pathname === '/talk-to-advisor' ? 'bg-primary/10 text-primary font-medium' : 'text-foreground'
+              }`}
+            >
+              Talk to an Advisor
+            </Link>
+            <Link 
               to="/about-us" 
               className={`py-2 px-4 rounded-lg ${
                 location.pathname === '/about-us' ? 'bg-primary/10 text-primary font-medium' : 'text-foreground'
@@ -114,12 +130,12 @@ const Header = () => {
             >
               About Us
             </Link>
-            <a 
-              href="#" 
+            <Link 
+              to="/talk-to-advisor" 
               className="py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-center"
             >
               Get Started
-            </a>
+            </Link>
           </nav>
         </div>
       )}

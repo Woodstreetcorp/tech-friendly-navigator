@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, Shield, Zap, Home, BatteryCharging, Database, Cpu, Smartphone } from 'lucide-react';
+import { ArrowRight, CheckCircle, Shield, Zap, Home, BatteryCharging, Database, Cpu, Smartphone, MessagesSquare } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Quiz from '../components/Quiz';
@@ -55,12 +55,16 @@ const Index = () => {
                     <ArrowRight size={18} className="ml-2" />
                   </button>
                   <Link
-                    to="/recommendations"
-                    className="btn-accent w-full sm:w-auto"
+                    to="/talk-to-advisor"
+                    className="btn-accent w-full sm:w-auto group"
                   >
-                    Browse All Solutions
+                    <MessagesSquare size={18} className="mr-2 group-hover:animate-pulse" />
+                    Talk to an Advisor
                   </Link>
                 </div>
+                <p className="text-sm text-muted-foreground mt-4 animate-slide-up" style={{ animationDelay: '450ms' }}>
+                  Prefer to browse? <Link to="/recommendations" className="text-primary hover:underline">View all solutions</Link>
+                </p>
               </div>
             </div>
           </section>
@@ -130,56 +134,94 @@ const Index = () => {
             </div>
           </section>
           
-          {/* How It Works Section */}
+          {/* How It Works Section - Updated with both quiz and advisor options */}
           <section className="py-20">
             <div className="container-custom">
               <div className="text-center max-w-2xl mx-auto mb-16">
-                <h2 className="text-3xl font-bold mb-4">How It Works</h2>
+                <h2 className="text-3xl font-bold mb-4">Two Ways to Get Help</h2>
                 <p className="text-muted-foreground">
-                  Get personalized smart home recommendations in three simple steps.
+                  Choose the option that works best for you to find your perfect smart home solution.
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center mb-6">
-                    1
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                <div className="glass-card p-8 h-full flex flex-col items-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <span className="text-2xl">📋</span>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">Answer Questions</h3>
-                  <p className="text-muted-foreground">
-                    Tell us about your home, preferences, and what you're looking for in a smart home system.
+                  <h3 className="text-xl font-semibold mb-3">Take the Quiz</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Answer a few simple questions and get instant recommendations based on your specific needs and preferences.
                   </p>
+                  
+                  <div className="space-y-3 text-left mb-6 w-full">
+                    <div className="flex items-start">
+                      <div className="bg-primary/10 p-1 rounded-full mr-2 mt-0.5">
+                        <Check size={14} className="text-primary" />
+                      </div>
+                      <p className="text-sm">Quick process (takes ~3 minutes)</p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="bg-primary/10 p-1 rounded-full mr-2 mt-0.5">
+                        <Check size={14} className="text-primary" />
+                      </div>
+                      <p className="text-sm">Instant recommendations</p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="bg-primary/10 p-1 rounded-full mr-2 mt-0.5">
+                        <Check size={14} className="text-primary" />
+                      </div>
+                      <p className="text-sm">Compare products and services</p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={startQuiz}
+                    className="btn-primary mt-auto"
+                  >
+                    <span>Start Quiz</span>
+                    <ArrowRight size={18} className="ml-2" />
+                  </button>
                 </div>
                 
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center mb-6">
-                    2
+                <div className="glass-card p-8 h-full flex flex-col items-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <span className="text-2xl">🧠</span>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">Get Recommendations</h3>
-                  <p className="text-muted-foreground">
-                    Our algorithm analyzes your answers to suggest the best products and service providers.
+                  <h3 className="text-xl font-semibold mb-3">Talk to an Advisor</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Connect with a smart home specialist who can provide personalized guidance and answer all your questions.
                   </p>
-                </div>
-                
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center mb-6">
-                    3
+                  
+                  <div className="space-y-3 text-left mb-6 w-full">
+                    <div className="flex items-start">
+                      <div className="bg-primary/10 p-1 rounded-full mr-2 mt-0.5">
+                        <Check size={14} className="text-primary" />
+                      </div>
+                      <p className="text-sm">In-depth consultation</p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="bg-primary/10 p-1 rounded-full mr-2 mt-0.5">
+                        <Check size={14} className="text-primary" />
+                      </div>
+                      <p className="text-sm">Expert guidance for complex needs</p>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="bg-primary/10 p-1 rounded-full mr-2 mt-0.5">
+                        <Check size={14} className="text-primary" />
+                      </div>
+                      <p className="text-sm">Chat, call, or schedule appointment</p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">Make Informed Decisions</h3>
-                  <p className="text-muted-foreground">
-                    Compare options, read details, and choose the smart home solutions that fit your needs.
-                  </p>
+                  
+                  <Link
+                    to="/talk-to-advisor"
+                    className="btn-accent mt-auto"
+                  >
+                    <MessagesSquare size={18} className="mr-2" />
+                    Talk to an Advisor
+                  </Link>
                 </div>
-              </div>
-              
-              <div className="mt-16 text-center">
-                <button
-                  onClick={startQuiz}
-                  className="btn-primary"
-                >
-                  <span>Start Your Personalized Quiz</span>
-                  <ArrowRight size={18} className="ml-2" />
-                </button>
               </div>
             </div>
           </section>
@@ -298,15 +340,24 @@ const Index = () => {
               <div className="glass-card p-10 md:p-16 max-w-4xl mx-auto text-center">
                 <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Home?</h2>
                 <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto">
-                  Take our quick quiz and discover the smart home solutions that will make your life easier, safer, and more efficient.
+                  Get personalized smart home recommendations through our quiz or speak directly with a smart home specialist.
                 </p>
-                <button
-                  onClick={startQuiz}
-                  className="btn-primary"
-                >
-                  <span>Get Your Personalized Recommendations</span>
-                  <ArrowRight size={18} className="ml-2" />
-                </button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={startQuiz}
+                    className="btn-primary"
+                  >
+                    <span>Take the Quiz</span>
+                    <ArrowRight size={18} className="ml-2" />
+                  </button>
+                  <Link
+                    to="/talk-to-advisor"
+                    className="btn-accent"
+                  >
+                    <MessagesSquare size={18} className="mr-2" />
+                    Talk to an Advisor
+                  </Link>
+                </div>
               </div>
             </div>
           </section>

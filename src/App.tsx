@@ -15,6 +15,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import ProductDetail from "./pages/ProductDetail";
 import ProviderDetail from "./pages/ProviderDetail";
 import AboutUs from "./pages/AboutUs";
+import TalkToAdvisor from "./pages/TalkToAdvisor";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/product/:productId" element={<ProductDetail />} />
             <Route path="/provider/:providerId" element={<ProviderDetail />} />
             <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/talk-to-advisor" element={<TalkToAdvisor />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminPanel />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
