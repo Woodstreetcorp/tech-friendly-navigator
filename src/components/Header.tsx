@@ -59,6 +59,14 @@ const Header = () => {
             >
               Recommendations
             </Link>
+            <Link 
+              to="/about-us" 
+              className={`transition-colors hover:text-primary ${
+                location.pathname === '/about-us' ? 'text-primary font-medium' : 'text-foreground/80'
+              }`}
+            >
+              About Us
+            </Link>
             <a 
               href="#" 
               className="py-2 px-4 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
@@ -97,6 +105,14 @@ const Header = () => {
               }`}
             >
               Recommendations
+            </Link>
+            <Link 
+              to="/about-us" 
+              className={`py-2 px-4 rounded-lg ${
+                location.pathname === '/about-us' ? 'bg-primary/10 text-primary font-medium' : 'text-foreground'
+              }`}
+            >
+              About Us
             </Link>
             <a 
               href="#" 
