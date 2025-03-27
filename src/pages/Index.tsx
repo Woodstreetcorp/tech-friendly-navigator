@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle, Shield, Zap, Home, BatteryCharging, Database, Cpu, Smartphone, MessagesSquare } from 'lucide-react';
+import { ArrowRight, CheckCircle, Shield, Zap, Home, BatteryCharging, Database, Cpu, Smartphone, MessagesSquare, Check } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Quiz from '../components/Quiz';
