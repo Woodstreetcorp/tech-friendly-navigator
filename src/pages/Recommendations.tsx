@@ -43,6 +43,7 @@ const Recommendations = () => {
   const [filteredProducts, setFilteredProducts] = useState<{product: SmartHomeProduct, score: number, matchReasons: string[]}[]>([]);
   const [showNoResults, setShowNoResults] = useState(false);
   const { trackEvent } = useUser();
+  const [hasTrackedView, setHasTrackedView] = useState(false);
 
   useEffect(() => {
     const recommendationsData = localStorage.getItem('smartHomeRecommendations');
@@ -51,35 +52,22 @@ const Recommendations = () => {
         const parsedData = JSON.parse(recommendationsData) as RecommendationData;
         setRecommendations(parsedData);
         
-        // Flatten all products for the "All" tab
-        const allProducts: typeof filteredProducts = [];
-        if (parsedData.recommendationsByCategory) {
-          Object.values(parsedData.recommendationsByCategory).forEach(categoryProducts => {
-            categoryProducts.forEach(product => {
-              if (!allProducts.some(p => p.product.id === product.product.id)) {
-                allProducts.push(product);
-              }
-            });
+        // Track view only once
+        if (!hasTrackedView) {
+          trackEvent({
+            eventType: 'recommendations_view',
+            source: 'quiz_completion',
+            url: window.location.href
           });
+          setHasTrackedView(true);
         }
-        
-        // Sort by score
-        allProducts.sort((a, b) => b.score - a.score);
-        setFilteredProducts(allProducts);
-        
-        // Track view
-        trackEvent({
-          eventType: 'recommendations_view',
-          source: 'quiz_completion',
-          url: window.location.href
-        });
       } catch (error) {
         console.error("Error parsing recommendations:", error);
       }
     } else {
       console.log("No recommendations found in localStorage");
     }
-  }, [trackEvent]);
+  }, [trackEvent, hasTrackedView]);
 
   useEffect(() => {
     if (!recommendations) return;
@@ -90,12 +78,14 @@ const Recommendations = () => {
       // Flatten all products
       const allProducts: typeof filteredProducts = [];
       if (recommendations.recommendationsByCategory) {
-        Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
-          categoryProducts.forEach(product => {
-            if (!allProducts.some(p => p.product.id === product.product.id)) {
-              allProducts.push(product);
-            }
-          });
+        Object.entries(recommendations.recommendationsByCategory).forEach(([_, categoryProducts]) => {
+          if (categoryProducts) {
+            categoryProducts.forEach(product => {
+              if (!allProducts.some(p => p.product.id === product.product.id)) {
+                allProducts.push(product);
+              }
+            });
+          }
         });
       }
       filtered = allProducts;
@@ -150,7 +140,7 @@ const Recommendations = () => {
     setActiveTab(value);
     trackEvent({
       eventType: 'recommendations_filter',
-      filterType: 'category',
+      source: 'category_tab',
       filterValue: value,
       url: window.location.href
     });
@@ -167,7 +157,7 @@ const Recommendations = () => {
       
       trackEvent({
         eventType: 'recommendations_filter',
-        filterType: 'compatibility',
+        source: 'compatibility_filter',
         filterValue: compatibility,
         filterAction: updated.compatibility.includes(compatibility) ? 'add' : 'remove',
         url: window.location.href
@@ -188,7 +178,7 @@ const Recommendations = () => {
       
       trackEvent({
         eventType: 'recommendations_filter',
-        filterType: 'brand',
+        source: 'brand_filter',
         filterValue: brand,
         filterAction: updated.brands.includes(brand) ? 'add' : 'remove',
         url: window.location.href
@@ -203,7 +193,7 @@ const Recommendations = () => {
     
     trackEvent({
       eventType: 'recommendations_filter',
-      filterType: 'price',
+      source: 'price_filter',
       filterValue: `${value[0]}-${value[1]}`,
       url: window.location.href
     });
@@ -218,8 +208,8 @@ const Recommendations = () => {
     
     trackEvent({
       eventType: 'recommendations_filter',
-      filterType: type,
-      filterValue: value.toString(),
+      source: 'contract_filter',
+      filterValue: `${type}:${value}`,
       url: window.location.href
     });
   };
@@ -229,7 +219,8 @@ const Recommendations = () => {
     if (!recommendations || !recommendations.recommendationsByCategory) return [];
     
     const brands = new Set<string>();
-    Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
+    
+    Object.entries(recommendations.recommendationsByCategory).forEach(([_, categoryProducts]) => {
       if (categoryProducts) {
         categoryProducts.forEach(item => {
           if (item && item.product && item.product.brand) {
@@ -247,17 +238,13 @@ const Recommendations = () => {
     if (!recommendations || !recommendations.recommendationsByCategory) return 0;
     
     if (category === 'all') {
-      const allProducts = new Set<string>();
+      let count = 0;
       Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
         if (categoryProducts) {
-          categoryProducts.forEach(item => {
-            if (item && item.product) {
-              allProducts.add(item.product.id);
-            }
-          });
+          count += categoryProducts.length;
         }
       });
-      return allProducts.size;
+      return count;
     }
     
     return recommendations.recommendationsByCategory[category]?.length || 0;

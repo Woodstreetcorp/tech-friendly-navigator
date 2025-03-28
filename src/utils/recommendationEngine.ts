@@ -174,12 +174,29 @@ export const generateRecommendations = (answers: QuizAnswers) => {
     recommendationsByCategory[category].push(scoredProduct);
   });
   
-  // Create the final recommendation object
+  // Create the final recommendation object with at least some fallback data
   const recommendations = {
     topRecommendations: productScores.slice(0, 5),
     recommendationsByCategory,
     quizAnswers: answers
   };
+  
+  // Make sure to have at least some recommendations if quiz data was insufficient
+  if (productScores.length === 0) {
+    console.log('No products matched quiz criteria, adding fallback recommendations');
+    const fallbackProducts = allSmartHomeProducts.filter(p => p.recommended).slice(0, 5);
+    
+    fallbackProducts.forEach(product => {
+      const fallbackScore: RecommendationScore = {
+        product,
+        score: 50,
+        matchReasons: ['General recommendation based on popularity']
+      };
+      
+      recommendations.topRecommendations.push(fallbackScore);
+      recommendationsByCategory[product.category].push(fallbackScore);
+    });
+  }
   
   console.log('Generated recommendations:', recommendations);
   
