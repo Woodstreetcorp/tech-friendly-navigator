@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductCategory } from "@/data/smartHomeProducts";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import ProductGrid from "./ProductGrid";
-import NoResultsMessage from "./NoResultsMessage";
+import { NoResultsMessage } from "./NoResultsMessage";
 import ServiceProviderGrid from "./ServiceProviderGrid";
 
 interface CategoryTabsProps {

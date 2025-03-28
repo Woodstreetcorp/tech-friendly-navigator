@@ -1,115 +1,130 @@
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-
-export type AnalyticsEvent = {
+// Define the structure of analytics events
+export interface AnalyticsEvent {
   eventType: string;
-  timestamp: number;
-  url: string;
-  source?: string;
   productId?: string;
   productName?: string;
-  filterValue?: string;
-  filterAction?: string;
-  contactMethod?: string;
-  [key: string]: any; // Allow additional properties
-};
+  providerId?: string;
+  providerName?: string;
+  source: string;
+  url: string;
+  timestamp: number;
+  [key: string]: any;
+}
 
-type UserContextType = {
-  userId: string | null;
-  isLoggedIn: boolean;
-  events: AnalyticsEvent[];
-  logIn: (email: string, password: string) => Promise<boolean>;
-  logOut: () => void;
-  trackEvent: (event: Omit<AnalyticsEvent, 'timestamp'>) => void;
-};
+// Define the structure of user data
+interface UserData {
+  name: string;
+  email: string;
+  phone?: string;
+  postalCode?: string;
+  consentToMarketing: boolean;
+}
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+// Define the context type
+interface UserContextType {
+  userData: UserData | null;
+  updateUserData: (data: UserData) => void;
+  trackEvent: (event: Partial<AnalyticsEvent>) => void;
+}
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [events, setEvents] = useState<AnalyticsEvent[]>([]);
+// Create the context with a default value
+const UserContext = createContext<UserContextType>({
+  userData: null,
+  updateUserData: () => {},
+  trackEvent: () => {},
+});
+
+// Create a provider component
+export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const [userData, setUserData] = useState<UserData | null>(() => {
+    // Initialize from localStorage
+    const storedData = localStorage.getItem('smartHomeUserData');
+    return storedData ? JSON.parse(storedData) : null;
+  });
+  
+  // Use useRef to hold analytics events
+  const analyticsEvents = useRef<AnalyticsEvent[]>([]);
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
-    const savedUser = localStorage.getItem('smartHomeUser');
-    if (savedUser) {
+    // Load analytics events from localStorage on component mount
+    const storedAnalytics = localStorage.getItem('smartHomeAnalytics');
+    if (storedAnalytics) {
       try {
-        const userData = JSON.parse(savedUser);
-        setUserId(userData.id);
-        setIsLoggedIn(true);
+        analyticsEvents.current = JSON.parse(storedAnalytics);
       } catch (error) {
-        console.error('Failed to parse user data:', error);
+        console.error('Error parsing analytics data from localStorage:', error);
+        // If there's an error parsing, initialize with an empty array
+        analyticsEvents.current = [];
       }
-    }
-    
-    // Load saved events
-    const savedEvents = localStorage.getItem('smartHomeEvents');
-    if (savedEvents) {
-      try {
-        setEvents(JSON.parse(savedEvents));
-      } catch (error) {
-        console.error('Failed to parse events:', error);
-      }
+    } else {
+      // If no data in localStorage, initialize with an empty array
+      analyticsEvents.current = [];
     }
   }, []);
-  
-  // Save events to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('smartHomeEvents', JSON.stringify(events));
-  }, [events]);
 
-  const logIn = async (email: string, password: string): Promise<boolean> => {
-    // This is a mock login function
-    // In a real app, you would validate credentials against a backend
-    try {
-      // Mock successful login
-      const mockUser = {
-        id: `user_${Math.random().toString(36).substring(2, 10)}`,
-        email: email,
-        name: email.split('@')[0]
+  // Function to update user data and store it in localStorage
+  const updateUserData = (data: UserData) => {
+    setUserData(data);
+    localStorage.setItem('smartHomeUserData', JSON.stringify(data));
+  };
+
+  // Function to track analytics events and store them in localStorage
+  const trackEvent = (event: Partial<AnalyticsEvent>) => {
+    if (!event.eventType || !event.url) {
+      console.error('Event missing required properties:', event);
+      // Add required properties if missing
+      const completeEvent: AnalyticsEvent = {
+        eventType: event.eventType || 'unknown_event',
+        url: event.url || window.location.href,
+        ...event,
+        timestamp: Date.now()
       };
       
-      setUserId(mockUser.id);
-      setIsLoggedIn(true);
+      // Now track the event with all required properties
+      const events = [...analyticsEvents.current, completeEvent];
+      analyticsEvents.current = events;
       
-      // Save to localStorage
-      localStorage.setItem('smartHomeUser', JSON.stringify(mockUser));
+      // Store in localStorage
+      try {
+        localStorage.setItem('smartHomeAnalytics', JSON.stringify(events));
+      } catch (error) {
+        console.error('Error storing analytics data:', error);
+      }
       
-      return true;
-    } catch (error) {
-      console.error('Login failed:', error);
-      return false;
+      // Log the event for debugging
+      console.log('Tracked event:', completeEvent);
+    } else {
+      // If all required properties are present, just add timestamp
+      const eventWithTimestamp = {
+        ...event,
+        timestamp: Date.now()
+      };
+      
+      // Track the event
+      const events = [...analyticsEvents.current, eventWithTimestamp];
+      analyticsEvents.current = events;
+      
+      // Store in localStorage
+      try {
+        localStorage.setItem('smartHomeAnalytics', JSON.stringify(events));
+      } catch (error) {
+        console.error('Error storing analytics data:', error);
+      }
+      
+      // Log the event for debugging
+      console.log('Tracked event:', eventWithTimestamp);
     }
   };
 
-  const logOut = () => {
-    setUserId(null);
-    setIsLoggedIn(false);
-    localStorage.removeItem('smartHomeUser');
-  };
-
-  const trackEvent = (event: Omit<AnalyticsEvent, 'timestamp'>) => {
-    const newEvent: AnalyticsEvent = {
-      ...event,
-      timestamp: Date.now()
-    };
-    
-    setEvents(prev => [...prev, newEvent]);
-    console.log('Tracked event:', newEvent);
-  };
-
+  // Provide the context value
   return (
-    <UserContext.Provider value={{ userId, isLoggedIn, events, logIn, logOut, trackEvent }}>
+    <UserContext.Provider value={{ userData, updateUserData, trackEvent }}>
       {children}
     </UserContext.Provider>
   );
 };
 
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
-};
+// Create a custom hook to use the context
+export const useUser = () => useContext(UserContext);

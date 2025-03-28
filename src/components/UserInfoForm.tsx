@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { Button } from './ui/button';
@@ -41,7 +42,7 @@ const UserInfoForm = ({
   providerName,
   affiliateUrl 
 }: UserInfoFormProps) => {
-  const { trackEvent, updateUserData } = useUser();
+  const { trackEvent } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -59,14 +60,14 @@ const UserInfoForm = ({
     setIsSubmitting(true);
     
     try {
-      // Save user data
-      updateUserData({
+      // Save user data to localStorage instead of using updateUserData
+      localStorage.setItem('smartHomeUserData', JSON.stringify({
         name: values.name,
         email: values.email,
         phone: values.phone,
         postalCode: values.postalCode,
         consentToMarketing: values.consentToMarketing,
-      });
+      }));
       
       // Track the form submission event
       trackEvent({

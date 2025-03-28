@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check, ExternalLink, Star } from 'lucide-react';
@@ -7,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useUser } from '@/context/UserContext';
 import UserInfoForm from '@/components/UserInfoForm';
-import { SmartHomeProduct } from '@/data/smartHomeProducts';
+import { SmartHomeProduct, ProductSubCategory } from '@/data/smartHomeProducts';
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Product = SmartHomeProduct;
 
@@ -16,7 +18,7 @@ const productsData: Product[] = [
     id: 'prod1',
     name: 'Ring Video Doorbell 4',
     category: 'security',
-    subCategory: 'video-doorbells',
+    subCategory: 'video-doorbells' as ProductSubCategory,
     description: 'Advanced security with color video preview and improved motion detection. The Ring Video Doorbell 4 features enhanced motion detection, color Pre-Roll technology, and customizable privacy settings.',
     price: 199.99,
     priceRange: 'mid-range',
@@ -31,7 +33,6 @@ const productsData: Product[] = [
       { name: 'Works with Alexa for voice control and notifications' }
     ],
     compatibility: ['Alexa', 'IFTTT'],
-    ecosystems: ['Amazon Alexa'],
     rating: 4.7,
     reviewCount: 1245,
     recommended: true,
@@ -46,7 +47,7 @@ const productsData: Product[] = [
     id: 'prod2',
     name: 'Nest Learning Thermostat',
     category: 'climate',
-    subCategory: 'thermostats',
+    subCategory: 'thermostats' as ProductSubCategory,
     description: 'Smart thermostat that learns your schedule and programs itself. The Nest Learning Thermostat adapts to your lifestyle, saving energy when you\'re away and maintaining comfort when you\'re home.',
     price: 249.99,
     priceRange: 'mid-range',
@@ -61,7 +62,6 @@ const productsData: Product[] = [
       { name: 'Farsight - lights up when it spots you across the room' }
     ],
     compatibility: ['Google Assistant', 'Alexa', 'IFTTT'],
-    ecosystems: ['Google Home', 'Amazon Alexa'],
     rating: 4.9,
     reviewCount: 1823,
     recommended: true,
@@ -76,7 +76,7 @@ const productsData: Product[] = [
     id: 'prod3',
     name: 'Philips Hue Starter Kit',
     category: 'lighting',
-    subCategory: 'smart-lighting-systems',
+    subCategory: 'light-bulbs' as ProductSubCategory,
     description: 'Smart lighting system with voice control and custom scenes. The Philips Hue system lets you control your lights via app or voice, set schedules, and create personalized lighting scenes.',
     price: 179.99,
     priceRange: 'mid-range',
@@ -91,7 +91,6 @@ const productsData: Product[] = [
       { name: 'Syncs with music, games, and movies' }
     ],
     compatibility: ['Alexa', 'Google Assistant', 'Apple HomeKit', 'Samsung SmartThings'],
-    ecosystems: ['Philips Hue', 'Amazon Alexa', 'Google Home', 'Apple HomeKit'],
     rating: 4.5,
     reviewCount: 2340,
     recommended: true,
@@ -106,7 +105,7 @@ const productsData: Product[] = [
     id: 'prod4',
     name: 'Amazon Echo Show 10',
     category: 'entertainment',
-    subCategory: 'smart-displays',
+    subCategory: 'speakers' as ProductSubCategory,
     description: 'Smart display with motion tracking and premium sound. The Echo Show 10 features a 10.1" HD screen that automatically rotates to face you, premium sound, and a built-in Zigbee hub.',
     price: 249.99,
     priceRange: 'premium',
@@ -121,7 +120,6 @@ const productsData: Product[] = [
       { name: 'Enhanced privacy controls including mic/camera off button and camera shutter' }
     ],
     compatibility: ['Alexa', 'Zigbee'],
-    ecosystems: ['Amazon Alexa'],
     rating: 4.6,
     reviewCount: 983,
     recommended: true,
@@ -140,9 +138,17 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showUserInfoForm, setShowUserInfoForm] = useState(false);
   
-  const { trackEvent, userData } = useUser();
+  const { trackEvent } = useUser();
+  // Get userData from localStorage instead of context
+  const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
+    // Try to get user data from localStorage
+    const storedUserData = localStorage.getItem('smartHomeUserData');
+    if (storedUserData) {
+      setUserData(JSON.parse(storedUserData));
+    }
+    
     console.log("ProductDetail mounted, loading product ID:", productId);
     
     // Find the product in our data
