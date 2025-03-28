@@ -1,4 +1,3 @@
-
 export type ProductFeature = {
   name: string;
   description?: string;
@@ -354,7 +353,7 @@ const smartThermostats: SmartHomeProduct[] = [
     monthlySubscriptionRequired: false,
     features: [
       { name: 'Auto-Schedule learns your preferred temperatures' },
-      { name: 'Home/Away Assist adjusts when nobody's home' },
+      { name: "Home/Away Assist adjusts when nobody's home" },
       { name: 'Farsight displays time, temperature or weather' },
       { name: 'Energy History shows how much energy you use' },
       { name: 'Easy setup with step-by-step guidance' },
