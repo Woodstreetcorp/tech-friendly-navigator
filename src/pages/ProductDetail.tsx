@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
@@ -19,7 +20,7 @@ const productsData: Product[] = [
     id: 'prod1',
     name: 'Ring Video Doorbell 4',
     category: 'security',
-    subCategory: 'video-doorbells' as ProductSubCategory,
+    subCategory: 'video-doorbells',
     description: 'Advanced security with color video preview and improved motion detection. The Ring Video Doorbell 4 features enhanced motion detection, color Pre-Roll technology, and customizable privacy settings.',
     price: 199.99,
     priceRange: 'mid-range',
@@ -48,7 +49,7 @@ const productsData: Product[] = [
     id: 'prod2',
     name: 'Nest Learning Thermostat',
     category: 'climate',
-    subCategory: 'thermostats' as ProductSubCategory,
+    subCategory: 'thermostats',
     description: 'Smart thermostat that learns your schedule and programs itself. The Nest Learning Thermostat adapts to your lifestyle, saving energy when you\'re away and maintaining comfort when you\'re home.',
     price: 249.99,
     priceRange: 'mid-range',
@@ -77,7 +78,7 @@ const productsData: Product[] = [
     id: 'prod3',
     name: 'Philips Hue Starter Kit',
     category: 'lighting',
-    subCategory: 'light-bulbs' as ProductSubCategory,
+    subCategory: 'light-bulbs',
     description: 'Smart lighting system with voice control and custom scenes. The Philips Hue system lets you control your lights via app or voice, set schedules, and create personalized lighting scenes.',
     price: 179.99,
     priceRange: 'mid-range',
@@ -106,7 +107,7 @@ const productsData: Product[] = [
     id: 'prod4',
     name: 'Amazon Echo Show 10',
     category: 'entertainment',
-    subCategory: 'speakers' as ProductSubCategory,
+    subCategory: 'speakers',
     description: 'Smart display with motion tracking and premium sound. The Echo Show 10 features a 10.1" HD screen that automatically rotates to face you, premium sound, and a built-in Zigbee hub.',
     price: 249.99,
     priceRange: 'premium',

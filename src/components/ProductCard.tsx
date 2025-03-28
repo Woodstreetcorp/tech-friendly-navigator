@@ -1,12 +1,13 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Star, ShoppingCart, Zap, Info, Shield, ExternalLink, Star as StarIcon } from 'lucide-react';
+import { Check, Star, Info, Shield, ExternalLink, Star as StarIcon, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useUser } from '@/context/UserContext';
 import { toast } from 'sonner';
 import { SmartHomeProduct } from '@/data/smartHomeProducts';
+import UserInfoForm from '@/components/UserInfoForm';
 
 export type Product = SmartHomeProduct;
 
@@ -26,6 +27,7 @@ const ProductCard = ({
   matchReasons = []
 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [showUserInfoForm, setShowUserInfoForm] = useState(false);
   const { trackEvent } = useUser();
   
   const handleTrackClick = () => {
@@ -39,7 +41,19 @@ const ProductCard = ({
       url: product.affiliateUrl || '',
     });
     
-    toast.success(`Tracking click for ${product.name}`);
+    // Show the user info form instead of direct navigation
+    setShowUserInfoForm(true);
+  };
+  
+  const handleUserFormComplete = () => {
+    setShowUserInfoForm(false);
+    
+    toast.success(`Thanks for your interest in ${product.name}!`);
+    
+    // Open affiliate URL in new tab after form completion
+    if (product.affiliateUrl) {
+      window.open(product.affiliateUrl, '_blank');
+    }
   };
   
   const sizeClasses = {
@@ -176,11 +190,20 @@ const ProductCard = ({
               onClick={handleTrackClick}
             >
               <ExternalLink size={16} className="mr-2" />
-              Buy Now
+              Get Best Deal
             </Button>
           </div>
         )}
       </div>
+      
+      {showUserInfoForm && (
+        <UserInfoForm
+          onClose={() => setShowUserInfoForm(false)}
+          onComplete={handleUserFormComplete}
+          productName={product.name}
+          affiliateUrl={product.affiliateUrl}
+        />
+      )}
     </div>
   );
 };
