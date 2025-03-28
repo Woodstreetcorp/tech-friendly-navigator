@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { ProductCategory, SmartHomeProduct } from '@/data/smartHomeProducts';
 import { useUser } from '@/context/UserContext';
+import { generateRecommendations } from '@/utils/recommendationEngine';
 
 type RecommendationItem = {
   product: SmartHomeProduct;
@@ -47,8 +47,7 @@ export const useRecommendationFilters = () => {
         // Add fallback data if parsedData is incomplete
         if (!parsedData.topRecommendations || !parsedData.recommendationsByCategory) {
           console.log('Adding fallback data to incomplete recommendations');
-          // Import directly to avoid circular dependency
-          const { generateRecommendations } = require('@/utils/recommendationEngine');
+          // Import the function directly - no require
           const fallbackRecommendations = generateRecommendations({});
           setRecommendations(fallbackRecommendations);
         } else {
@@ -68,14 +67,12 @@ export const useRecommendationFilters = () => {
         console.error("Error parsing recommendations:", error);
         // Generate fallback recommendations on parse error
         console.log('Generating fallback recommendations due to parse error');
-        const { generateRecommendations } = require('@/utils/recommendationEngine');
         const fallbackRecommendations = generateRecommendations({});
         setRecommendations(fallbackRecommendations);
       }
     } else {
       console.log("No recommendations found in localStorage, generating fallback data");
       // Generate fallback recommendations if none exist
-      const { generateRecommendations } = require('@/utils/recommendationEngine');
       const fallbackRecommendations = generateRecommendations({});
       setRecommendations(fallbackRecommendations);
     }
