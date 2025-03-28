@@ -1,183 +1,169 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { DollarSign } from 'lucide-react';
-import { SmartHomeProduct, allSmartHomeProducts } from '@/data/smartHomeProducts';
+import { DollarSign, Plus, X } from 'lucide-react';
+import { allSmartHomeProducts, SmartHomeProduct } from '@/data/smartHomeProducts';
+import { toast } from 'sonner';
 
-export const BudgetPicksManager = () => {
-  const [products, setProducts] = useState<SmartHomeProduct[]>([]);
-  const [budgetPicks, setBudgetPicks] = useState<string[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [needsSaving, setNeedsSaving] = useState(false);
+export default function BudgetPicksManager() {
+  const [budgetPicks, setBudgetPicks] = useState<SmartHomeProduct[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<SmartHomeProduct[]>([]);
 
-  // Load data
+  // Load initial data
   useEffect(() => {
-    // In a real app, we would fetch this from an API
-    setProducts(allSmartHomeProducts);
+    // In a real application, this would come from an API
+    const budget = allSmartHomeProducts.filter(
+      product => product.priceRange === 'budget' || 
+      (product.recommendationReasons && product.recommendationReasons.includes('Budget Pick'))
+    );
+    setBudgetPicks(budget);
     
-    // Get current budget picks from localStorage
-    const budgetPicksData = localStorage.getItem('smartHomeBudgetPicks');
-    if (budgetPicksData) {
-      try {
-        const parsedData = JSON.parse(budgetPicksData);
-        setBudgetPicks(parsedData);
-      } catch (error) {
-        console.error("Error parsing budget picks:", error);
-      }
-    }
+    // Available products are those not already in budget picks
+    const available = allSmartHomeProducts.filter(
+      product => !budget.some(bp => bp.id === product.id) && product.priceRange !== 'budget'
+    );
+    setAvailableProducts(available);
   }, []);
 
-  const filteredProducts = categoryFilter === 'all' 
-    ? products 
-    : products.filter(p => p.category === categoryFilter);
-
-  const categories = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'security', label: 'Security' },
-    { value: 'lighting', label: 'Lighting' },
-    { value: 'climate', label: 'Climate Control' },
-    { value: 'entertainment', label: 'Entertainment' }
-  ];
-
-  const toggleBudgetPick = (productId: string) => {
-    setBudgetPicks(prev => {
-      if (prev.includes(productId)) {
-        return prev.filter(id => id !== productId);
-      } else {
-        return [...prev, productId];
-      }
-    });
-    setNeedsSaving(true);
+  const addToBudgetPicks = (product: SmartHomeProduct) => {
+    // Create a copy of the product with budget priceRange
+    const budgetProduct: SmartHomeProduct = {
+      ...product,
+      priceRange: 'budget' as const,
+      recommendationReasons: [
+        ...(product.recommendationReasons || []),
+        'Budget Pick'
+      ]
+    };
+    
+    // Add to budget picks
+    setBudgetPicks(prev => [...prev, budgetProduct]);
+    
+    // Remove from available products
+    setAvailableProducts(prev => prev.filter(p => p.id !== product.id));
+    
+    toast.success(`Added ${product.name} to Budget Picks`);
   };
 
-  const saveBudgetPicks = () => {
-    // Update the priceRange property for all products
-    const updatedProducts = products.map(product => {
-      if (budgetPicks.includes(product.id)) {
-        // Add "Budget Pick" to recommendation reasons if not already present
-        let recommendationReasons = product.recommendationReasons || [];
-        if (!recommendationReasons.includes('Budget Pick')) {
-          recommendationReasons = [...recommendationReasons, 'Budget Pick'];
-        }
-        return {
-          ...product,
-          priceRange: 'budget',
-          recommendationReasons
-        };
-      }
-      return product;
-    });
-
-    // Save budget picks to localStorage
-    localStorage.setItem('smartHomeBudgetPicks', JSON.stringify(budgetPicks));
+  const removeFromBudgetPicks = (productId: string) => {
+    // Get the product we're removing
+    const product = budgetPicks.find(p => p.id === productId);
+    if (!product) return;
     
-    // In a real app, we would save these changes to the API
-    // For now, just update the local state
-    setProducts(updatedProducts);
-    setNeedsSaving(false);
+    // If it was originally not a budget product, add it back to available products
+    if (product.priceRange !== 'budget' || 
+        (product.recommendationReasons && product.recommendationReasons.includes('Budget Pick'))) {
+      // Create a version that's not marked as budget
+      const nonBudgetProduct: SmartHomeProduct = {
+        ...product,
+        priceRange: 'mid-range' as const, // Default to mid-range
+        recommendationReasons: product.recommendationReasons?.filter(r => r !== 'Budget Pick') || []
+      };
+      
+      setAvailableProducts(prev => [...prev, nonBudgetProduct]);
+    }
     
-    // Show success message
-    alert('Budget picks saved successfully!');
+    // Remove from budget picks
+    setBudgetPicks(prev => prev.filter(p => p.id !== productId));
+    toast.success(`Removed from Budget Picks`);
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-primary" />
-          Budget Picks Manager
-        </CardTitle>
-        <CardDescription>
-          Select products to mark as "Budget Pick" on the Recommendations page
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4 flex items-center justify-between">
-          <div className="space-y-1">
-            <Label htmlFor="category-filter">Filter by Category</Label>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger id="category-filter" className="w-[180px]">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="ml-auto">
-              {budgetPicks.length} budget picks
-            </Badge>
-            <Button 
-              onClick={saveBudgetPicks} 
-              disabled={!needsSaving}
-              size="sm"
-            >
-              Save Budget Picks
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-medium">Budget Picks Management</h2>
+          <p className="text-sm text-muted-foreground">Manage which products appear as Budget Picks in recommendations</p>
         </div>
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <DollarSign className="mr-2 h-5 w-5 text-primary" />
+              Current Budget Picks
+            </CardTitle>
+            <CardDescription>Products currently marked as Budget Picks</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {budgetPicks.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">No budget picks selected yet</p>
+            ) : (
+              <ul className="space-y-3">
+                {budgetPicks.map(product => (
+                  <li key={product.id} className="flex items-center justify-between p-2 border rounded-md">
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={product.featuredImage} 
+                        alt={product.name} 
+                        className="h-10 w-10 rounded-md object-cover"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{product.name}</span>
+                        <span className="text-xs text-muted-foreground">${product.price.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => removeFromBudgetPicks(product.id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
         
-        <ScrollArea className="h-[450px] rounded-md border p-4">
-          <div className="space-y-4">
-            {filteredProducts.map(product => (
-              <div 
-                key={product.id} 
-                className={`flex items-start gap-4 p-3 rounded-lg transition-colors ${
-                  budgetPicks.includes(product.id) 
-                    ? 'bg-muted/50 border border-primary/20' 
-                    : 'hover:bg-muted/30 border border-transparent'
-                }`}
-              >
-                <div className="flex h-10 w-10 shrink-0 overflow-hidden rounded-md">
-                  <img 
-                    src={product.featuredImage} 
-                    alt={product.name} 
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">{product.name}</div>
-                    <Badge variant={product.priceRange === 'budget' ? 'secondary' : 'outline'}>
-                      ${product.price.toFixed(2)}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-2">
-                    <span className="font-medium">{product.brand}</span>
-                    <span>•</span>
-                    <span>{product.category}</span>
-                    {product.priceRange === 'budget' && (
-                      <>
-                        <span>•</span>
-                        <span className="text-primary font-medium">Budget Pick</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <Checkbox 
-                  checked={budgetPicks.includes(product.id)}
-                  onCheckedChange={() => toggleBudgetPick(product.id)}
-                  className="h-5 w-5"
-                />
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Products</CardTitle>
+            <CardDescription>Products that can be marked as Budget Picks</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {availableProducts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">No more products available</p>
+            ) : (
+              <ul className="space-y-3">
+                {availableProducts.map(product => (
+                  <li key={product.id} className="flex items-center justify-between p-2 border rounded-md">
+                    <div className="flex items-center gap-2">
+                      <img 
+                        src={product.featuredImage} 
+                        alt={product.name} 
+                        className="h-10 w-10 rounded-md object-cover"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{product.name}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground">${product.price.toFixed(2)}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {product.priceRange}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => addToBudgetPicks(product)}
+                      className="ml-2"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
-};
-
-export default BudgetPicksManager;
+}

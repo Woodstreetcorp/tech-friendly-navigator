@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Image, Upload } from 'lucide-react';
+import { toast } from "sonner";
 
 interface ImageUploaderProps {
   currentImage: string;
@@ -29,6 +30,7 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
     setTimeout(() => {
       setIsUploading(false);
       onImageChange(objectUrl);
+      toast.success("Image uploaded successfully!");
     }, 1000);
   };
 
@@ -36,13 +38,56 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
     fileInputRef.current?.click();
   };
 
+  // Handle drag and drop functionality
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    
+    setTimeout(() => {
+      setIsUploading(false);
+      onImageChange(objectUrl);
+      toast.success("Image uploaded successfully!");
+    }, 1000);
+  };
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{label}</label>
       <div className="flex flex-col items-center gap-4 sm:flex-row">
         <div 
-          className="relative h-24 w-24 overflow-hidden rounded-md border bg-background cursor-pointer"
+          className={`relative h-24 w-24 overflow-hidden rounded-md border-2 ${isDragging ? 'border-primary border-dashed' : 'border-border'} bg-background cursor-pointer`}
           onClick={triggerFileInput}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
         >
           {previewUrl ? (
             <img 
@@ -53,6 +98,12 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-muted">
               <Image className="h-8 w-8 text-muted-foreground" />
+            </div>
+          )}
+          
+          {isDragging && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+              <p className="text-xs font-medium text-primary">Drop image here</p>
             </div>
           )}
         </div>
@@ -88,6 +139,9 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
           />
           <p className="text-xs text-muted-foreground">
             Recommended: Square image, 300x300px or larger
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Drag and drop an image or click to browse
           </p>
         </div>
       </div>

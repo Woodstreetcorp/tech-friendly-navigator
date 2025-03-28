@@ -39,7 +39,6 @@ const TopPicks = ({ topRecommendations }: TopPicksProps) => {
               key={item.product.id} 
               product={item.product} 
               matchReasons={matchReasons.slice(0, 2)}
-              isBudgetPick={isBudgetPick}
             />
           );
         })}

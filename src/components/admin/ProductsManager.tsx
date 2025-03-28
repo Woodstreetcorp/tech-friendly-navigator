@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -116,8 +115,8 @@ export function ProductsManager() {
           
           <ProductList 
             products={products}
-            onEditClick={handleEditClick}
-            onDeleteClick={handleDeleteProduct}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteProduct}
           />
           
           <EditProductDialog 
