@@ -1,15 +1,16 @@
-
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Check, ExternalLink, Star } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useUser } from '@/context/UserContext';
 import UserInfoForm from '@/components/UserInfoForm';
-import { SmartHomeProduct, ProductSubCategory } from '@/data/smartHomeProducts';
-import { Skeleton } from "@/components/ui/skeleton";
+import { SmartHomeProduct } from '@/data/smartHomeProducts';
+import ProductBreadcrumbs, { ProductNotFound } from '@/components/product/ProductBreadcrumbs';
+import ProductImageDisplay from '@/components/product/ProductImageDisplay';
+import ProductInfo from '@/components/product/ProductInfo';
+import ProductFeatures from '@/components/product/ProductFeatures';
+import ProductDetailSkeleton from '@/components/product/ProductDetailSkeleton';
 
 type Product = SmartHomeProduct;
 
@@ -139,11 +140,9 @@ const ProductDetail = () => {
   const [showUserInfoForm, setShowUserInfoForm] = useState(false);
   
   const { trackEvent } = useUser();
-  // Get userData from localStorage instead of context
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    // Try to get user data from localStorage
     const storedUserData = localStorage.getItem('smartHomeUserData');
     if (storedUserData) {
       setUserData(JSON.parse(storedUserData));
@@ -151,15 +150,12 @@ const ProductDetail = () => {
     
     console.log("ProductDetail mounted, loading product ID:", productId);
     
-    // Find the product in our data
     const foundProduct = productsData.find(p => p.id === productId) || null;
     console.log("Found product:", foundProduct ? foundProduct.name : "Not found");
     
-    // Set product and loading state immediately
     setProduct(foundProduct);
     setLoading(false);
     
-    // Only track event if the product is found
     if (foundProduct) {
       trackEvent({
         eventType: 'product_detail_view',
@@ -184,183 +180,39 @@ const ProductDetail = () => {
     
     toast.success(`Tracking click for ${product.name}`);
     
-    // Always show the user info form first
     setShowUserInfoForm(true);
   };
 
   const handleUserFormComplete = () => {
     setShowUserInfoForm(false);
     
-    // If user data is collected and we have an affiliate URL, open it
     if (userData && product?.affiliateUrl) {
       window.open(product.affiliateUrl, '_blank');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow container-custom py-10">
-          <div className="flex items-center mb-6 text-sm">
-            <Link to="/" className="text-muted-foreground hover:text-primary">Home</Link>
-            <span className="mx-2">/</span>
-            <Link to="/recommendations" className="text-muted-foreground hover:text-primary">Recommendations</Link>
-            <span className="mx-2">/</span>
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
-            <div className="glass-card p-6 flex items-center justify-center">
-              <Skeleton className="h-80 w-full rounded-lg" />
-            </div>
-            <div className="space-y-6">
-              <div>
-                <Skeleton className="h-4 w-1/4 mb-2" />
-                <Skeleton className="h-8 w-3/4 mb-4" />
-                <Skeleton className="h-4 w-1/2 mb-4" />
-                <Skeleton className="h-20 w-full" />
-              </div>
-              <Skeleton className="h-8 w-1/3" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-12 w-40" />
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow container-custom py-10">
-          <div className="flex flex-col items-center justify-center py-20">
-            <h2 className="text-2xl font-semibold mb-4">Product Not Found</h2>
-            <p className="text-muted-foreground mb-6">The product you're looking for doesn't exist or has been removed.</p>
-            <Link to="/recommendations" className="btn-primary">
-              <ArrowLeft size={18} className="mr-2" />
-              Browse Other Products
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow py-10">
-        <div className="container-custom">
-          <div className="flex items-center mb-6 text-sm">
-            <Link to="/" className="text-muted-foreground hover:text-primary">Home</Link>
-            <span className="mx-2">/</span>
-            <Link to="/recommendations" className="text-muted-foreground hover:text-primary">Recommendations</Link>
-            <span className="mx-2">/</span>
-            <span className="text-foreground">{product.name}</span>
+        {loading ? (
+          <ProductDetailSkeleton />
+        ) : !product ? (
+          <div className="container-custom">
+            <ProductNotFound />
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
-            <div className="glass-card p-6 flex items-center justify-center">
-              <img 
-                src={product.featuredImage} 
-                alt={product.name} 
-                className="w-full max-w-md h-auto object-contain"
-              />
+        ) : (
+          <div className="container-custom">
+            <ProductBreadcrumbs productName={product.name} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
+              <ProductImageDisplay image={product.featuredImage} name={product.name} />
+              <ProductInfo product={product} onCTAClick={handleCTAClick} />
             </div>
             
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center mb-2">
-                  <span className="text-sm font-medium text-muted-foreground">{product.brand}</span>
-                  <span className="mx-2">•</span>
-                  <span className="text-sm font-medium text-muted-foreground">{product.category}</span>
-                  {product.subCategory && (
-                    <>
-                      <span className="mx-2">•</span>
-                      <span className="text-sm font-medium text-muted-foreground">{product.subCategory}</span>
-                    </>
-                  )}
-                </div>
-                <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-                
-                <div className="flex items-center mb-4">
-                  <div className="flex items-center mr-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={18} 
-                        className={`${i < Math.floor(product.rating) ? 'text-amber-500 fill-amber-500' : 'text-gray-300 fill-gray-300'}`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm font-medium">{product.rating}</span>
-                  <span className="mx-1">•</span>
-                  <span className="text-sm text-muted-foreground">{product.reviewCount} reviews</span>
-                </div>
-                
-                <p className="text-muted-foreground">{product.description}</p>
-              </div>
-              
-              <div className="pt-4 border-t border-border">
-                <span className="text-3xl font-bold">${product.price.toFixed(2)}</span>
-              </div>
-              
-              {product.recommended && product.recommendationReasons && (
-                <div className="flex flex-wrap gap-2">
-                  {product.recommendationReasons.map((reason, idx) => (
-                    <span 
-                      key={idx} 
-                      className="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium bg-primary/10 text-primary"
-                    >
-                      <Check size={12} className="mr-1" />
-                      {reason}
-                    </span>
-                  ))}
-                </div>
-              )}
-              
-              <div className="pt-4">
-                <Button 
-                  onClick={handleCTAClick}
-                  className="w-full md:w-auto bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium shadow-md hover:shadow-lg transition-all duration-200"
-                >
-                  <ExternalLink size={18} className="mr-2" />
-                  Get Best Deal
-                </Button>
-              </div>
-              
-              <div className="pt-4 border-t border-border">
-                <h3 className="font-semibold mb-2">Compatible with</h3>
-                <div className="flex flex-wrap gap-1">
-                  {product.compatibility.map((item, index) => (
-                    <span 
-                      key={index}
-                      className="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium bg-secondary text-foreground"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <ProductFeatures features={product.features} />
           </div>
-          
-          <div className="glass-card p-8 mb-16">
-            <h2 className="text-2xl font-semibold mb-6">Key Features</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {product.features.map((feature, index) => (
-                <div key={index} className="flex items-start">
-                  <Check size={20} className="mr-2 text-primary mt-0.5 flex-shrink-0" />
-                  <span>{feature.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        )}
       </main>
       
       <Footer />
@@ -369,8 +221,8 @@ const ProductDetail = () => {
         <UserInfoForm
           onClose={() => setShowUserInfoForm(false)}
           onComplete={handleUserFormComplete}
-          productName={product.name}
-          affiliateUrl={product.affiliateUrl}
+          productName={product?.name}
+          affiliateUrl={product?.affiliateUrl}
         />
       )}
     </div>

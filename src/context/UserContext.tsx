@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 // Define the structure of analytics events
@@ -27,6 +28,7 @@ interface UserContextType {
   userData: UserData | null;
   updateUserData: (data: UserData) => void;
   trackEvent: (event: Partial<AnalyticsEvent>) => void;
+  events: AnalyticsEvent[]; // Add this line to expose events
 }
 
 // Create the context with a default value
@@ -34,6 +36,7 @@ const UserContext = createContext<UserContextType>({
   userData: null,
   updateUserData: () => {},
   trackEvent: () => {},
+  events: [], // Add default empty array
 });
 
 // Create a provider component
@@ -77,6 +80,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       // Add required properties if missing
       const completeEvent: AnalyticsEvent = {
         eventType: event.eventType || 'unknown_event',
+        source: event.source || 'unknown_source',
         url: event.url || window.location.href,
         ...event,
         timestamp: Date.now()
@@ -97,8 +101,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Tracked event:', completeEvent);
     } else {
       // If all required properties are present, just add timestamp
-      const eventWithTimestamp = {
-        ...event,
+      const eventWithTimestamp: AnalyticsEvent = {
+        ...event as any,
+        source: event.source || 'unknown_source',
         timestamp: Date.now()
       };
       
@@ -120,7 +125,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Provide the context value
   return (
-    <UserContext.Provider value={{ userData, updateUserData, trackEvent }}>
+    <UserContext.Provider value={{ 
+      userData, 
+      updateUserData, 
+      trackEvent,
+      events: analyticsEvents.current 
+    }}>
       {children}
     </UserContext.Provider>
   );
