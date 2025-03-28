@@ -1,71 +1,109 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductList } from './products/ProductList';
 import { AddProductDialog } from './products/AddProductDialog';
 import { EditProductDialog } from './products/EditProductDialog';
 import { AttributeManager } from './products/attributes/AttributeManager';
+import { SmartHomeProduct, ProductCategory, ProductSubCategory } from '@/data/smartHomeProducts';
 
-// Sample products data (in a real app, this would come from your backend)
-const sampleProducts = [
-  {
-    id: 'prod1',
-    name: 'Ring Video Doorbell 4',
-    category: 'Security',
-    image: '/placeholder.svg',
-    rating: 4.7,
-    price: 199.99,
-    description: 'Advanced security with color video preview and improved motion detection.'
-  },
-  {
-    id: 'prod2',
-    name: 'Nest Learning Thermostat',
-    category: 'Climate Control',
-    image: '/placeholder.svg',
-    rating: 4.9,
-    price: 249.99,
-    description: 'Smart thermostat that learns your schedule and programs itself.'
-  },
-  {
-    id: 'prod3',
-    name: 'Philips Hue Starter Kit',
-    category: 'Lighting',
-    image: '/placeholder.svg',
-    rating: 4.5,
-    price: 179.99,
-    description: 'Smart lighting system with voice control and custom scenes.'
-  },
-  {
-    id: 'prod4',
-    name: 'Amazon Echo Show 10',
-    category: 'Smart Speakers',
-    image: '/placeholder.svg',
-    rating: 4.6,
-    price: 249.99,
-    description: 'Smart display with motion tracking and premium sound.'
-  }
-];
-
-type Product = typeof sampleProducts[0];
+// Initial empty product template
+const emptyProduct: Partial<SmartHomeProduct> = {
+  name: '',
+  brand: '',
+  category: 'security',
+  subCategory: 'alarm-systems',
+  description: '',
+  price: 0,
+  priceRange: 'mid-range',
+  featuredImage: '/placeholder.svg',
+  installationType: 'DIY',
+  contractRequired: false,
+  monthlySubscriptionRequired: false,
+  features: [],
+  compatibility: [],
+  rating: 4.5,
+  reviewCount: 0
+};
 
 export const ProductsManager = () => {
-  const [products, setProducts] = useState<Product[]>(sampleProducts);
+  const [products, setProducts] = useState<SmartHomeProduct[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [currentProduct, setCurrentProduct] = useState<SmartHomeProduct | null>(null);
   const [activeTab, setActiveTab] = useState('products');
-  const [newProduct, setNewProduct] = useState<Partial<Product>>({
-    name: '',
-    category: '',
-    price: 0,
-    rating: 5.0,
-    description: '',
-    image: '/placeholder.svg'
-  });
+  const [newProduct, setNewProduct] = useState<Partial<SmartHomeProduct>>(emptyProduct);
+
+  // Load products from localStorage or initialize with empty array
+  useEffect(() => {
+    const storedProducts = localStorage.getItem('smart_home_products');
+    if (storedProducts) {
+      try {
+        setProducts(JSON.parse(storedProducts));
+      } catch (error) {
+        console.error('Error parsing stored products:', error);
+        initializeWithSampleProducts();
+      }
+    } else {
+      initializeWithSampleProducts();
+    }
+  }, []);
+
+  // Save products to localStorage whenever they change
+  useEffect(() => {
+    if (products.length > 0) {
+      localStorage.setItem('smart_home_products', JSON.stringify(products));
+    }
+  }, [products]);
+
+  const initializeWithSampleProducts = () => {
+    // Sample products for initial setup
+    const sampleProducts: SmartHomeProduct[] = [
+      {
+        id: 'prod1',
+        name: 'Ring Video Doorbell 4',
+        brand: 'Ring',
+        category: 'security',
+        subCategory: 'video-doorbells',
+        description: 'Advanced security with color video preview and improved motion detection.',
+        price: 199.99,
+        priceRange: 'mid-range',
+        featuredImage: '/placeholder.svg',
+        installationType: 'DIY',
+        contractRequired: false,
+        monthlySubscriptionRequired: false,
+        features: [{ name: 'Color video preview' }, { name: 'Improved motion detection' }],
+        compatibility: ['Alexa', 'Google Assistant'],
+        rating: 4.7,
+        reviewCount: 1200
+      },
+      {
+        id: 'prod2',
+        name: 'Nest Learning Thermostat',
+        brand: 'Google Nest',
+        category: 'climate',
+        subCategory: 'thermostats',
+        description: 'Smart thermostat that learns your schedule and programs itself.',
+        price: 249.99,
+        priceRange: 'premium',
+        featuredImage: '/placeholder.svg',
+        installationType: 'DIY',
+        contractRequired: false,
+        monthlySubscriptionRequired: false,
+        features: [{ name: 'Auto-scheduling' }, { name: 'Energy history' }],
+        compatibility: ['Google Assistant', 'Alexa'],
+        rating: 4.9,
+        reviewCount: 2500
+      }
+    ];
+    
+    setProducts(sampleProducts);
+    localStorage.setItem('smart_home_products', JSON.stringify(sampleProducts));
+  };
 
   const handleAddProduct = () => {
-    if (!newProduct.name || !newProduct.category) {
+    if (!newProduct.name || !newProduct.category || !newProduct.subCategory) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -73,26 +111,16 @@ export const ProductsManager = () => {
     const productToAdd = {
       ...newProduct,
       id: `prod${Date.now()}`,
-      name: newProduct.name || '',
-      category: newProduct.category || '',
-      price: Number(newProduct.price) || 0,
-      rating: Number(newProduct.rating) || 5.0,
-      image: newProduct.image || '/placeholder.svg',
-      description: newProduct.description || ''
-    } as Product;
+      rating: Number(newProduct.rating) || 4.5,
+      reviewCount: Number(newProduct.reviewCount) || 0,
+      features: newProduct.features || [],
+      compatibility: newProduct.compatibility || [],
+    } as SmartHomeProduct;
 
     setProducts([...products, productToAdd]);
-    setNewProduct({
-      name: '',
-      category: '',
-      price: 0,
-      rating: 5.0,
-      description: '',
-      image: '/placeholder.svg'
-    });
+    setNewProduct(emptyProduct);
     setIsAddDialogOpen(false);
     
-    // In a real app, you'd make an API call to save the product
     toast.success('Product added successfully');
   };
 
@@ -109,7 +137,6 @@ export const ProductsManager = () => {
     setProducts(updatedProducts);
     setIsEditDialogOpen(false);
     
-    // In a real app, you'd make an API call to update the product
     toast.success('Product updated successfully');
   };
 
@@ -118,7 +145,6 @@ export const ProductsManager = () => {
       const updatedProducts = products.filter(product => product.id !== id);
       setProducts(updatedProducts);
       
-      // In a real app, you'd make an API call to delete the product
       toast.success('Product deleted successfully');
     }
   };
@@ -133,7 +159,7 @@ export const ProductsManager = () => {
         
         <TabsContent value="products" className="pt-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Products Management</h2>
+            <h2 className="text-2xl font-bold">Smart Home Products Management</h2>
             <AddProductDialog 
               isOpen={isAddDialogOpen}
               onOpenChange={setIsAddDialogOpen}

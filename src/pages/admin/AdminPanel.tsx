@@ -1,6 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
@@ -8,48 +7,16 @@ import { ProductsManager } from '@/components/admin/ProductsManager';
 import { ProvidersManager } from '@/components/admin/ProvidersManager';
 import { UserDataManager } from '@/components/admin/UserDataManager';
 import { AnalyticsPanel } from '@/components/admin/AnalyticsPanel';
-
-type AdminSession = {
-  isAuthenticated: boolean;
-  username: string;
-  loginTime: string;
-};
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminPanel = () => {
-  const navigate = useNavigate();
-  const [session, setSession] = useState<AdminSession | null>(null);
+  const { session, isLoading, logout } = useAdminAuth('/admin');
 
-  // Check for admin session
-  useEffect(() => {
-    const adminSession = localStorage.getItem('admin_session');
-    
-    if (!adminSession) {
-      navigate('/admin');
-      return;
-    }
-    
-    try {
-      const parsedSession = JSON.parse(adminSession) as AdminSession;
-      
-      if (!parsedSession.isAuthenticated) {
-        navigate('/admin');
-        return;
-      }
-      
-      setSession(parsedSession);
-    } catch (error) {
-      console.error('Error parsing admin session:', error);
-      navigate('/admin');
-    }
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('admin_session');
-    navigate('/admin');
-  };
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
   if (!session) {
-    // You could return a loading component here
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
@@ -58,7 +25,7 @@ const AdminPanel = () => {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold">ApprOVU Admin</h1>
+            <h1 className="text-2xl font-bold">Smart Home Advisor Admin</h1>
             <span className="text-muted-foreground">
               Logged in as <span className="font-medium">{session.username}</span>
             </span>
@@ -66,7 +33,7 @@ const AdminPanel = () => {
           <Button 
             variant="ghost" 
             className="flex items-center gap-2"
-            onClick={handleLogout}
+            onClick={logout}
           >
             <LogOut size={16} />
             Logout

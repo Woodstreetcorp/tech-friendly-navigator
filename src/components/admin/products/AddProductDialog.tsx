@@ -4,22 +4,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { ProductForm } from './ProductForm';
-
-type Product = {
-  id: string;
-  name: string;
-  category: string;
-  image: string;
-  rating: number;
-  price: number;
-  description: string;
-};
+import { SmartHomeProduct } from '@/data/smartHomeProducts';
 
 interface AddProductDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  newProduct: Partial<Product>;
-  onProductChange: (product: Partial<Product>) => void;
+  newProduct: Partial<SmartHomeProduct>;
+  onProductChange: (product: Partial<SmartHomeProduct>) => void;
   onAddProduct: () => void;
 }
 
@@ -40,7 +31,7 @@ export const AddProductDialog = ({
       </SheetTrigger>
       <SheetContent className="overflow-y-auto w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Add New Product</SheetTitle>
+          <SheetTitle>Add New Smart Home Product</SheetTitle>
         </SheetHeader>
         <ProductForm 
           product={newProduct} 
