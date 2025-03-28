@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ChevronRight, AlertCircle, PlusCircle, Check } from 'lucide-react';
 
@@ -25,6 +26,7 @@ export type Question = {
     exclusive: string[];
     regular: string[];
   };
+  showIf?: (answers: Record<string, any>) => boolean;
 };
 
 type QuizQuestionProps = {
@@ -80,15 +82,15 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
         delete newSelected.none;
         
         // Toggle provider selection
-        if (newSelected[option.value]) {
+        if (newSelected[option.value as string]) {
           // If already selected, remove provider and its services
-          delete newSelected[option.value];
+          delete newSelected[option.value as string];
           
           // Remove from expanded list if it was expanded
           setExpandedProviders(expandedProviders.filter(id => id !== option.id));
         } else {
           // Initialize provider with empty services array
-          newSelected[option.value] = [];
+          newSelected[option.value as string] = [];
           
           // Expand the provider to show services
           if (!expandedProviders.includes(option.id)) {
@@ -210,7 +212,7 @@ const QuizQuestion = ({ question, onAnswer, onNext, currentValue }: QuizQuestion
       if (option.value === 'none') {
         return !!selected.none;
       }
-      return !!selected[option.value];
+      return !!selected[option.value as string];
     }
     
     if (question.type === 'multi-select' && Array.isArray(selected)) {
