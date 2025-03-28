@@ -175,15 +175,25 @@ const ProductCard = ({
         
         {showActions && (
           <div className="flex gap-2 mt-auto">
-            <Link to={`/product/${product.id}`} className="flex-1">
-              <Button 
-                variant="outline" 
-                className="w-full"
-              >
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                trackEvent({
+                  eventType: 'product_detail_click',
+                  productId: product.id,
+                  productName: product.name,
+                  source: 'product_card_details_button',
+                  url: window.location.href
+                });
+              }}
+              asChild
+            >
+              <Link to={`/product/${product.id}`}>
                 <Info size={16} className="mr-2" />
                 Details
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             
             <Button 
               className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white"

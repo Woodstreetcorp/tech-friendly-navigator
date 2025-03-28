@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
@@ -150,9 +151,12 @@ const ProductDetail = () => {
     
     console.log("ProductDetail mounted, loading product ID:", productId);
     
+    // Fetch from actual API in production
+    // For now, using sample data
     const foundProduct = productsData.find(p => p.id === productId) || null;
     console.log("Found product:", foundProduct ? foundProduct.name : "Not found");
     
+    // Set product data and turn off loading state
     setProduct(foundProduct);
     setLoading(false);
     
@@ -178,15 +182,15 @@ const ProductDetail = () => {
       url: product.affiliateUrl || '',
     });
     
-    toast.success(`Tracking click for ${product.name}`);
-    
     setShowUserInfoForm(true);
   };
 
   const handleUserFormComplete = () => {
     setShowUserInfoForm(false);
     
-    if (userData && product?.affiliateUrl) {
+    toast.success(`Thanks for your interest in ${product?.name}!`);
+    
+    if (product?.affiliateUrl) {
       window.open(product.affiliateUrl, '_blank');
     }
   };
