@@ -1,278 +1,186 @@
 
-import { Check, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { Link } from 'react-router-dom';
+import { Check, Star, ShoppingCart, Zap, Info, Shield, ExternalLink, Star as StarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useUser } from '@/context/UserContext';
 import { toast } from 'sonner';
-import { useUser } from '../context/UserContext';
-import UserInfoForm from './UserInfoForm';
+import { SmartHomeProduct } from '@/data/smartHomeProducts';
 
-export type Product = {
-  id: string;
-  name: string;
-  category: string;
-  subCategory?: string;
-  description: string;
-  price: number;
-  featuredImage: string;
-  brand: string;
-  features: string[];
-  compatibility: string[];
-  ecosystems?: string[];
-  rating: number;
-  reviewCount: number;
-  recommended?: boolean;
-  recommendationReasons?: string[];
-  affiliateUrl?: string;
-  commissionRate?: number; // percentage of sale
-  serviceProvider?: string;
-};
+export type Product = SmartHomeProduct;
 
-type ProductCardProps = {
+interface ProductCardProps {
   product: Product;
-  compact?: boolean;
-};
+  showReasons?: boolean;
+  showActions?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  matchReasons?: string[];
+}
 
-const ProductCard = ({ product, compact = false }: ProductCardProps) => {
-  const { 
-    name, category, description, price, featuredImage, brand, 
-    features, compatibility, rating, reviewCount, recommended, 
-    recommendationReasons, affiliateUrl 
-  } = product;
+const ProductCard = ({ 
+  product, 
+  showReasons = true, 
+  showActions = true, 
+  size = 'medium',
+  matchReasons = []
+}: ProductCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const { trackEvent } = useUser();
   
-  const [showLeadForm, setShowLeadForm] = useState(false);
-  const [email, setEmail] = useState('');
-  const [showUserInfoForm, setShowUserInfoForm] = useState(false);
-  
-  const { trackEvent, isUserDataCollected } = useUser();
-
-  const trackClick = (productId: string, productName: string) => {
-    // Enhanced tracking with more details
+  const handleTrackClick = () => {
+    if (!product) return;
+    
     trackEvent({
       eventType: 'product_click',
-      productId,
-      productName,
-      source: compact ? 'compact_card' : 'full_card',
-      url: affiliateUrl,
-    });
-    
-    toast.success(`Tracking click for ${productName}`);
-  };
-
-  const handleLeadCapture = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email) {
-      toast.error("Please enter your email");
-      return;
-    }
-    
-    // Enhanced lead tracking
-    trackEvent({
-      eventType: 'lead_captured',
       productId: product.id,
       productName: product.name,
+      source: 'product_card',
+      url: product.affiliateUrl || '',
     });
     
-    toast.success("Thanks! We'll send you more information soon.");
-    
-    setShowLeadForm(false);
+    toast.success(`Tracking click for ${product.name}`);
   };
-
-  const handleCTAClick = () => {
-    trackClick(product.id, product.name);
-    
-    // If user data is already collected, proceed to affiliate link
-    if (isUserDataCollected && affiliateUrl) {
-      window.open(affiliateUrl, '_blank');
-    } else {
-      // Show user info form
-      setShowUserInfoForm(true);
-    }
+  
+  const sizeClasses = {
+    small: 'max-w-[240px]',
+    medium: 'max-w-sm',
+    large: 'max-w-md'
   };
-
-  const handleUserFormComplete = () => {
-    setShowUserInfoForm(false);
-    
-    // The form component will handle redirecting to the affiliate URL
-  };
-
-  if (compact) {
-    return (
-      <div className="glass-card card-hover overflow-hidden">
-        <div className="relative">
-          <div className="aspect-video w-full overflow-hidden">
-            <img 
-              src={featuredImage} 
-              alt={name} 
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-            />
-          </div>
-          {recommended && (
-            <div className="absolute top-3 right-3">
-              <span className="inline-flex items-center py-1 px-3 rounded-full text-xs font-medium bg-primary text-white">
-                Recommended
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="p-5">
-          <div className="mb-3">
-            <span className="text-xs font-medium text-muted-foreground">{brand} • {category}</span>
-            <h3 className="text-lg font-medium mt-1 line-clamp-1">{name}</h3>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <span className="font-semibold">${price.toFixed(2)}</span>
-            <div className="flex items-center">
-              <span className="flex items-center mr-1">
-                {[...Array(5)].map((_, i) => (
-                  <svg 
-                    key={i} 
-                    width="12" 
-                    height="12" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`${i < Math.floor(rating) ? 'text-amber-500' : 'text-gray-200'}`}
-                  >
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
-                  </svg>
-                ))}
-              </span>
-              <span className="text-xs text-muted-foreground">({reviewCount})</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  
+  if (!product) return null;
+  
   return (
-    <div className="glass-card overflow-hidden flex flex-col">
+    <div 
+      className={`glass-card group rounded-lg overflow-hidden transition duration-300 ${sizeClasses[size]} ${isHovered ? 'shadow-lg transform -translate-y-1' : 'shadow'}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className="relative">
-        <div className="aspect-video w-full overflow-hidden">
+        <Link to={`/product/${product.id}`}>
           <img 
-            src={featuredImage} 
-            alt={name} 
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+            src={product.featuredImage} 
+            alt={product.name}
+            className="w-full h-48 object-contain bg-secondary/30 p-4 transition duration-300 transform group-hover:scale-105"
           />
-        </div>
-        {recommended && (
-          <div className="absolute top-3 right-3">
-            <span className="inline-flex items-center py-1 px-3 rounded-full text-xs font-medium bg-primary text-white">
-              Recommended
-            </span>
-          </div>
-        )}
-      </div>
-      <div className="p-6 flex-grow flex flex-col">
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-medium text-muted-foreground">{brand} • {category}</span>
-            <div className="flex items-center">
-              <span className="flex items-center mr-1">
-                {[...Array(5)].map((_, i) => (
-                  <svg 
-                    key={i} 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`${i < Math.floor(rating) ? 'text-amber-500' : 'text-gray-200'}`}
-                  >
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
-                  </svg>
-                ))}
-              </span>
-              <span className="text-sm text-muted-foreground">({reviewCount})</span>
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold">{name}</h3>
-          <p className="text-muted-foreground mt-2 text-sm line-clamp-2">{description}</p>
-        </div>
+        </Link>
         
-        {/* Recommendation reasons - new section */}
-        {recommended && recommendationReasons && recommendationReasons.length > 0 && (
-          <div className="mb-4 mt-1">
-            <div className="flex flex-wrap gap-2">
-              {recommendationReasons.map((reason, idx) => (
-                <span 
-                  key={idx} 
-                  className="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium bg-primary/10 text-primary"
-                >
-                  <Check size={12} className="mr-1" />
-                  {reason}
-                </span>
-              ))}
-            </div>
+        {product.recommended && (
+          <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded text-xs font-medium">
+            Recommended
           </div>
         )}
         
-        <div className="space-y-4 flex-grow">
-          <ul className="space-y-2">
-            {features.slice(0, 3).map((feature, index) => (
-              <li key={index} className="flex items-start">
-                <Check size={16} className="mr-2 text-primary mt-0.5 flex-shrink-0" />
-                <span className="text-sm">{feature}</span>
-              </li>
-            ))}
-          </ul>
-          
-          <div className="mt-2">
-            <span className="text-sm font-medium">Compatible with:</span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {compatibility.map((item, index) => (
-                <span 
-                  key={index}
-                  className="inline-flex items-center py-0.5 px-2 rounded-md text-xs font-medium bg-secondary text-foreground"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
+        {product.priceRange === 'budget' && (
+          <div className="absolute top-2 left-2 bg-emerald-500/90 text-white px-2 py-1 rounded text-xs font-medium flex items-center">
+            <Zap size={12} className="mr-1" /> Budget Pick
           </div>
-        </div>
-        
-        <div className="mt-6 flex items-center justify-between pt-4 border-t border-border">
-          <span className="text-xl font-semibold">${price.toFixed(2)}</span>
-          
-          {showLeadForm ? (
-            <form onSubmit={handleLeadCapture} className="flex gap-2">
-              <Input 
-                type="email" 
-                placeholder="Your email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="max-w-[200px]"
-              />
-              <Button type="submit" size="sm">
-                Get Deal
-              </Button>
-            </form>
-          ) : (
-            <Button 
-              onClick={handleCTAClick}
-              size="sm"
-              className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium rounded-full shadow-md hover:shadow-lg transition-all duration-200"
-            >
-              <ExternalLink size={16} className="mr-1" />
-              {product.serviceProvider ? 'Contact Provider' : 'View Best Deal'}
-            </Button>
-          )}
-        </div>
+        )}
       </div>
       
-      {/* User info collection form */}
-      {showUserInfoForm && (
-        <UserInfoForm
-          onClose={() => setShowUserInfoForm(false)}
-          onComplete={handleUserFormComplete}
-          productName={product.name}
-          affiliateUrl={affiliateUrl}
-        />
-      )}
+      <div className="p-4">
+        <div className="mb-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-medium text-muted-foreground">
+              {product.brand} • {product.category}
+            </span>
+            <div className="flex items-center">
+              <StarIcon size={14} className="text-amber-500 fill-amber-500 mr-1" />
+              <span className="text-xs font-medium">{product.rating}</span>
+            </div>
+          </div>
+          
+          <Link to={`/product/${product.id}`} className="block">
+            <h3 className="font-semibold text-lg mb-1 transition-colors group-hover:text-primary">{product.name}</h3>
+          </Link>
+          
+          <div className="flex items-baseline mb-3">
+            <span className="text-xl font-bold">${product.price.toFixed(2)}</span>
+            {product.monthlySubscription && (
+              <span className="ml-2 text-xs text-muted-foreground">
+                + ${product.monthlySubscription.toFixed(2)}/mo
+                {product.monthlySubscriptionRequired ? ' (required)' : ' (optional)'}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {(matchReasons.length > 0 || (showReasons && product.recommendationReasons?.length)) && (
+          <div className="mb-3">
+            {matchReasons.length > 0 ? (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {matchReasons.slice(0, 2).map((reason, idx) => (
+                  <div key={idx} className="flex items-center bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                    <Check size={10} className="mr-1" />
+                    <span>{reason}</span>
+                  </div>
+                ))}
+              </div>
+            ) : showReasons && product.recommendationReasons ? (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {product.recommendationReasons.slice(0, 2).map((reason, idx) => (
+                  <div key={idx} className="flex items-center bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                    <Check size={10} className="mr-1" />
+                    <span>{reason}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )}
+        
+        {size !== 'small' && (
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+            {product.description}
+          </p>
+        )}
+        
+        {size !== 'small' && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-1">
+              {product.compatibility.slice(0, 3).map((comp, index) => (
+                <Badge 
+                  key={index}
+                  variant="outline" 
+                  className="text-xs bg-secondary/50"
+                >
+                  {comp}
+                </Badge>
+              ))}
+              {product.compatibility.length > 3 && (
+                <Badge 
+                  variant="outline" 
+                  className="text-xs bg-secondary/50"
+                >
+                  +{product.compatibility.length - 3} more
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {showActions && (
+          <div className="flex gap-2 mt-auto">
+            <Link to={`/product/${product.id}`} className="flex-1">
+              <Button 
+                variant="outline" 
+                className="w-full"
+              >
+                <Info size={16} className="mr-2" />
+                Details
+              </Button>
+            </Link>
+            
+            <Button 
+              className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white"
+              onClick={handleTrackClick}
+            >
+              <ExternalLink size={16} className="mr-2" />
+              Buy Now
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
