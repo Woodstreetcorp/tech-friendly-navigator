@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
@@ -107,7 +106,7 @@ const productsData: Product[] = [
     id: 'prod4',
     name: 'Amazon Echo Show 10',
     category: 'entertainment',
-    subCategory: 'speakers',
+    subCategory: 'smart-speakers',
     description: 'Smart display with motion tracking and premium sound. The Echo Show 10 features a 10.1" HD screen that automatically rotates to face you, premium sound, and a built-in Zigbee hub.',
     price: 249.99,
     priceRange: 'premium',

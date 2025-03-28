@@ -7,6 +7,7 @@ import { ProductsManager } from '@/components/admin/ProductsManager';
 import { ProvidersManager } from '@/components/admin/ProvidersManager';
 import { UserDataManager } from '@/components/admin/UserDataManager';
 import { AnalyticsPanel } from '@/components/admin/AnalyticsPanel';
+import { AdminDashboard } from '@/components/admin/Dashboard';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminPanel = () => {
@@ -42,13 +43,18 @@ const AdminPanel = () => {
       </header>
       
       <main className="container mx-auto px-4 py-6">
-        <Tabs defaultValue="products">
+        <Tabs defaultValue="dashboard">
           <TabsList className="mb-6">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="providers">Service Providers</TabsTrigger>
             <TabsTrigger value="users">User Data</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="dashboard">
+            <AdminDashboard />
+          </TabsContent>
           
           <TabsContent value="products">
             <ProductsManager />

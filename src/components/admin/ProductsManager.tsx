@@ -6,7 +6,7 @@ import { ProductList } from './products/ProductList';
 import { AddProductDialog } from './products/AddProductDialog';
 import { EditProductDialog } from './products/EditProductDialog';
 import { AttributeManager } from './products/attributes/AttributeManager';
-import { SmartHomeProduct, ProductCategory, ProductSubCategory } from '@/data/smartHomeProducts';
+import { SmartHomeProduct, ProductCategory, ProductSubCategory, allSmartHomeProducts } from '@/data/smartHomeProducts';
 
 // Initial empty product template
 const emptyProduct: Partial<SmartHomeProduct> = {
@@ -34,6 +34,7 @@ export const ProductsManager = () => {
   const [currentProduct, setCurrentProduct] = useState<SmartHomeProduct | null>(null);
   const [activeTab, setActiveTab] = useState('products');
   const [newProduct, setNewProduct] = useState<Partial<SmartHomeProduct>>(emptyProduct);
+  const [showOnlyCustomProducts, setShowOnlyCustomProducts] = useState(false);
 
   // Load products from localStorage or initialize with empty array
   useEffect(() => {
@@ -54,6 +55,23 @@ export const ProductsManager = () => {
   useEffect(() => {
     if (products.length > 0) {
       localStorage.setItem('smart_home_products', JSON.stringify(products));
+      
+      // Important: Update the allSmartHomeProducts array with our custom products
+      // This ensures products added in admin are visible on the frontend
+      const defaultProducts = allSmartHomeProducts.filter(p => 
+        !products.some(customProduct => customProduct.id === p.id)
+      );
+      
+      // Merge default products with custom products
+      const mergedProducts = [...defaultProducts, ...products];
+      
+      // Replace the content of allSmartHomeProducts with merged products
+      // This is a hack to make sure new products show on frontend
+      Object.assign(allSmartHomeProducts, []);
+      allSmartHomeProducts.push(...mergedProducts);
+      
+      console.log(`Updated products store with ${products.length} products`);
+      console.log(`Total products available: ${allSmartHomeProducts.length}`);
     }
   }, [products]);
 
@@ -149,6 +167,20 @@ export const ProductsManager = () => {
     }
   };
 
+  const toggleFilter = () => {
+    setShowOnlyCustomProducts(!showOnlyCustomProducts);
+  };
+
+  // Get products to display based on filter
+  const getDisplayProducts = () => {
+    if (showOnlyCustomProducts) {
+      return products;
+    }
+    
+    // Return products from the allSmartHomeProducts array
+    return allSmartHomeProducts;
+  };
+
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -159,7 +191,21 @@ export const ProductsManager = () => {
         
         <TabsContent value="products" className="pt-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Smart Home Products Management</h2>
+            <div>
+              <h2 className="text-2xl font-bold">Smart Home Products Management</h2>
+              <div className="flex items-center mt-2">
+                <label htmlFor="toggle-filter" className="mr-2 text-sm text-muted-foreground">
+                  Show only custom products:
+                </label>
+                <input 
+                  type="checkbox" 
+                  id="toggle-filter" 
+                  checked={showOnlyCustomProducts} 
+                  onChange={toggleFilter}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+              </div>
+            </div>
             <AddProductDialog 
               isOpen={isAddDialogOpen}
               onOpenChange={setIsAddDialogOpen}
@@ -170,7 +216,7 @@ export const ProductsManager = () => {
           </div>
 
           <ProductList 
-            products={products}
+            products={getDisplayProducts()}
             onEdit={(product) => {
               setCurrentProduct(product);
               setIsEditDialogOpen(true);
