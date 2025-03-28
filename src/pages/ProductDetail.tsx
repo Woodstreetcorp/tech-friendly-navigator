@@ -229,25 +229,28 @@ const ProductDetail = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-grow py-10">
-        {loading ? (
-          <ProductDetailSkeleton />
-        ) : !product ? (
-          <div className="container-custom">
-            <ProductNotFound />
-          </div>
-        ) : (
-          <div className="container-custom">
-            <ProductBreadcrumbs productName={product.name} />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
-              <ProductImageDisplay image={product.featuredImage} name={product.name} />
-              <ProductInfo product={product} onCTAClick={handleCTAClick} />
+      <main className="flex-grow">
+        {/* Add padding-top to create space after header */}
+        <div className="pt-16 md:pt-20">
+          {loading ? (
+            <ProductDetailSkeleton />
+          ) : !product ? (
+            <div className="container-custom">
+              <ProductNotFound />
             </div>
-            
-            <ProductFeatures features={product.features} />
-          </div>
-        )}
+          ) : (
+            <div className="container-custom py-10">
+              <ProductBreadcrumbs productName={product.name} />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
+                <ProductImageDisplay image={product.featuredImage} name={product.name} />
+                <ProductInfo product={product} onCTAClick={handleCTAClick} />
+              </div>
+              
+              <ProductFeatures features={product.features} />
+            </div>
+          )}
+        </div>
       </main>
       
       <Footer />

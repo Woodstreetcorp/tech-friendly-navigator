@@ -24,13 +24,25 @@ const TopPicks = ({ topRecommendations }: TopPicksProps) => {
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {topRecommendations.slice(0, 3).map((item) => (
-          <ProductCard 
-            key={item.product.id} 
-            product={item.product} 
-            matchReasons={item.matchReasons.slice(0, 2)}
-          />
-        ))}
+        {topRecommendations.slice(0, 3).map((item) => {
+          // Check if this product is a budget pick
+          const isBudgetPick = item.product.priceRange === 'budget' || 
+                            (item.matchReasons && item.matchReasons.includes('Budget Pick'));
+          
+          // Add budget pick to match reasons if applicable
+          const matchReasons = isBudgetPick && !item.matchReasons.includes('Budget Pick') 
+            ? [...item.matchReasons, 'Budget Pick'] 
+            : item.matchReasons;
+          
+          return (
+            <ProductCard 
+              key={item.product.id} 
+              product={item.product} 
+              matchReasons={matchReasons.slice(0, 2)}
+              isBudgetPick={isBudgetPick}
+            />
+          );
+        })}
       </div>
     </div>
   );
