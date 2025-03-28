@@ -53,13 +53,15 @@ const Recommendations = () => {
         
         // Flatten all products for the "All" tab
         const allProducts: typeof filteredProducts = [];
-        Object.values(parsedData.recommendationsByCategory).forEach(categoryProducts => {
-          categoryProducts.forEach(product => {
-            if (!allProducts.some(p => p.product.id === product.product.id)) {
-              allProducts.push(product);
-            }
+        if (parsedData.recommendationsByCategory) {
+          Object.values(parsedData.recommendationsByCategory).forEach(categoryProducts => {
+            categoryProducts.forEach(product => {
+              if (!allProducts.some(p => p.product.id === product.product.id)) {
+                allProducts.push(product);
+              }
+            });
           });
-        });
+        }
         
         // Sort by score
         allProducts.sort((a, b) => b.score - a.score);
@@ -69,7 +71,6 @@ const Recommendations = () => {
         trackEvent({
           eventType: 'recommendations_view',
           source: 'quiz_completion',
-          productCount: allProducts.length,
           url: window.location.href
         });
       } catch (error) {
@@ -88,16 +89,19 @@ const Recommendations = () => {
     if (activeTab === 'all') {
       // Flatten all products
       const allProducts: typeof filteredProducts = [];
-      Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
-        categoryProducts.forEach(product => {
-          if (!allProducts.some(p => p.product.id === product.product.id)) {
-            allProducts.push(product);
-          }
+      if (recommendations.recommendationsByCategory) {
+        Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
+          categoryProducts.forEach(product => {
+            if (!allProducts.some(p => p.product.id === product.product.id)) {
+              allProducts.push(product);
+            }
+          });
         });
-      });
+      }
       filtered = allProducts;
     } else {
-      filtered = recommendations.recommendationsByCategory[activeTab as ProductCategory] || [];
+      filtered = recommendations.recommendationsByCategory && 
+                 recommendations.recommendationsByCategory[activeTab as ProductCategory] || [];
     }
     
     // Apply filters
@@ -222,13 +226,17 @@ const Recommendations = () => {
 
   // Get unique brands from recommendations
   const getUniqueBrands = (): string[] => {
-    if (!recommendations) return [];
+    if (!recommendations || !recommendations.recommendationsByCategory) return [];
     
     const brands = new Set<string>();
     Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
-      categoryProducts.forEach(item => {
-        brands.add(item.product.brand);
-      });
+      if (categoryProducts) {
+        categoryProducts.forEach(item => {
+          if (item && item.product && item.product.brand) {
+            brands.add(item.product.brand);
+          }
+        });
+      }
     });
     
     return Array.from(brands).sort();
@@ -236,14 +244,18 @@ const Recommendations = () => {
 
   // Products count by category (for badges)
   const getCategoryCount = (category: ProductCategory | 'all'): number => {
-    if (!recommendations) return 0;
+    if (!recommendations || !recommendations.recommendationsByCategory) return 0;
     
     if (category === 'all') {
       const allProducts = new Set<string>();
       Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
-        categoryProducts.forEach(item => {
-          allProducts.add(item.product.id);
-        });
+        if (categoryProducts) {
+          categoryProducts.forEach(item => {
+            if (item && item.product) {
+              allProducts.add(item.product.id);
+            }
+          });
+        }
       });
       return allProducts.size;
     }
@@ -253,10 +265,10 @@ const Recommendations = () => {
 
   // Categories with products
   const getActiveCategories = (): ProductCategory[] => {
-    if (!recommendations) return [];
+    if (!recommendations || !recommendations.recommendationsByCategory) return [];
     
     return Object.entries(recommendations.recommendationsByCategory)
-      .filter(([_, products]) => products.length > 0)
+      .filter(([_, products]) => products && products.length > 0)
       .map(([category]) => category as ProductCategory);
   };
 
