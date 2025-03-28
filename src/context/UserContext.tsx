@@ -1,145 +1,115 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type UserData = {
-  email: string;
-  name?: string;
-  phone?: string;
-  postalCode?: string;
-  consentToMarketing: boolean;
-};
-
-type AnalyticsEvent = {
+export type AnalyticsEvent = {
   eventType: string;
+  timestamp: number;
+  url: string;
+  source?: string;
   productId?: string;
   productName?: string;
-  providerId?: string;
-  providerName?: string;
-  timestamp: string;
-  source?: string;
-  url?: string;
+  filterValue?: string;
+  filterAction?: string;
+  contactMethod?: string;
+  [key: string]: any; // Allow additional properties
 };
 
-interface UserContextType {
-  userData: UserData | null;
-  setUserData: (data: UserData) => void;
-  trackEvent: (event: Omit<AnalyticsEvent, "timestamp">) => void;
+type UserContextType = {
+  userId: string | null;
+  isLoggedIn: boolean;
   events: AnalyticsEvent[];
-  clearUserData: () => void;
-  isUserDataCollected: boolean;
-}
-
-const defaultContext: UserContextType = {
-  userData: null,
-  setUserData: () => {},
-  trackEvent: () => {},
-  events: [],
-  clearUserData: () => {},
-  isUserDataCollected: false,
+  logIn: (email: string, password: string) => Promise<boolean>;
+  logOut: () => void;
+  trackEvent: (event: Omit<AnalyticsEvent, 'timestamp'>) => void;
 };
 
-const UserContext = createContext<UserContextType>(defaultContext);
-
-export const useUser = () => useContext(UserContext);
-
-const MAX_STORED_EVENTS = 50;
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userData, setUserDataState] = useState<UserData | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [events, setEvents] = useState<AnalyticsEvent[]>([]);
-  const [isUserDataCollected, setIsUserDataCollected] = useState<boolean>(false);
 
   useEffect(() => {
-    const savedUserData = localStorage.getItem('approvu_user_data');
-    if (savedUserData) {
+    // Check if user is logged in from localStorage
+    const savedUser = localStorage.getItem('smartHomeUser');
+    if (savedUser) {
       try {
-        const parsedData = JSON.parse(savedUserData);
-        setUserDataState(parsedData);
-        setIsUserDataCollected(true);
-      } catch (e) {
-        console.error('Error parsing saved user data', e);
+        const userData = JSON.parse(savedUser);
+        setUserId(userData.id);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
       }
     }
-
-    const savedEvents = localStorage.getItem('approvu_analytics_events');
+    
+    // Load saved events
+    const savedEvents = localStorage.getItem('smartHomeEvents');
     if (savedEvents) {
       try {
-        const parsedEvents = JSON.parse(savedEvents);
-        setEvents(parsedEvents);
-      } catch (e) {
-        console.error('Error parsing saved events', e);
+        setEvents(JSON.parse(savedEvents));
+      } catch (error) {
+        console.error('Failed to parse events:', error);
       }
     }
   }, []);
-
+  
+  // Save events to localStorage whenever they change
   useEffect(() => {
-    if (userData) {
-      try {
-        localStorage.setItem('approvu_user_data', JSON.stringify(userData));
-      } catch (e) {
-        console.error('Error saving user data to localStorage', e);
-      }
-    }
-  }, [userData]);
-
-  useEffect(() => {
-    if (events.length > 0) {
-      try {
-        const eventsToStore = events.slice(-MAX_STORED_EVENTS);
-        localStorage.setItem('approvu_analytics_events', JSON.stringify(eventsToStore));
-      } catch (e) {
-        console.error('Error saving events to localStorage', e);
-        
-        if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-          try {
-            const reducedEvents = events.slice(-Math.floor(MAX_STORED_EVENTS / 2));
-            localStorage.setItem('approvu_analytics_events', JSON.stringify(reducedEvents));
-            setEvents(reducedEvents);
-          } catch (innerError) {
-            console.error('Failed to save even reduced events, clearing localStorage events', innerError);
-            localStorage.removeItem('approvu_analytics_events');
-          }
-        }
-      }
-    }
+    localStorage.setItem('smartHomeEvents', JSON.stringify(events));
   }, [events]);
 
-  const setUserData = (data: UserData) => {
-    setUserDataState(data);
-    setIsUserDataCollected(true);
+  const logIn = async (email: string, password: string): Promise<boolean> => {
+    // This is a mock login function
+    // In a real app, you would validate credentials against a backend
+    try {
+      // Mock successful login
+      const mockUser = {
+        id: `user_${Math.random().toString(36).substring(2, 10)}`,
+        email: email,
+        name: email.split('@')[0]
+      };
+      
+      setUserId(mockUser.id);
+      setIsLoggedIn(true);
+      
+      // Save to localStorage
+      localStorage.setItem('smartHomeUser', JSON.stringify(mockUser));
+      
+      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    }
   };
 
-  const trackEvent = (event: Omit<AnalyticsEvent, "timestamp">) => {
-    const newEvent = {
+  const logOut = () => {
+    setUserId(null);
+    setIsLoggedIn(false);
+    localStorage.removeItem('smartHomeUser');
+  };
+
+  const trackEvent = (event: Omit<AnalyticsEvent, 'timestamp'>) => {
+    const newEvent: AnalyticsEvent = {
       ...event,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now()
     };
     
-    console.log('Tracking event:', newEvent);
-    
-    setEvents(prev => {
-      const updatedEvents = [...prev, newEvent];
-      return updatedEvents.length > MAX_STORED_EVENTS 
-        ? updatedEvents.slice(-MAX_STORED_EVENTS) 
-        : updatedEvents;
-    });
-  };
-
-  const clearUserData = () => {
-    setUserDataState(null);
-    setIsUserDataCollected(false);
-    localStorage.removeItem('approvu_user_data');
+    setEvents(prev => [...prev, newEvent]);
+    console.log('Tracked event:', newEvent);
   };
 
   return (
-    <UserContext.Provider value={{ 
-      userData, 
-      setUserData, 
-      trackEvent, 
-      events, 
-      clearUserData,
-      isUserDataCollected
-    }}>
+    <UserContext.Provider value={{ userId, isLoggedIn, events, logIn, logOut, trackEvent }}>
       {children}
     </UserContext.Provider>
   );
+};
+
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
 };
