@@ -12,6 +12,7 @@ type RecommendationItem = {
 type RecommendationData = {
   topRecommendations: RecommendationItem[];
   recommendationsByCategory: Record<ProductCategory, RecommendationItem[]>;
+  recommendedProviders?: any[]; // Add providers support
   quizAnswers: Record<string, any>;
 };
 
@@ -105,10 +106,15 @@ export const useRecommendationFilters = () => {
         });
       }
       filtered = allProducts;
+    } else if (activeTab === 'providers') {
+      // Return early as we don't need to apply further filtering to providers
+      setFilteredProducts([]);
+      setShowNoResults(false);
+      return;
     } else {
       filtered = recommendations.recommendationsByCategory && 
-                 Array.isArray(recommendations.recommendationsByCategory[activeTab as ProductCategory]) ?
-                 recommendations.recommendationsByCategory[activeTab as ProductCategory] : [];
+                Array.isArray(recommendations.recommendationsByCategory[activeTab as ProductCategory]) ?
+                recommendations.recommendationsByCategory[activeTab as ProductCategory] : [];
     }
     
     console.log(`Found ${filtered.length} products for tab ${activeTab} before applying filters`);
@@ -245,6 +251,37 @@ export const useRecommendationFilters = () => {
     });
   };
 
+  // Get service providers from recommendations
+  const getServiceProviders = () => {
+    if (!recommendations || !recommendations.recommendedProviders) {
+      // Return sample providers for now
+      return [
+        {
+          id: 'prov1',
+          name: 'Bell Smart Home',
+          category: 'Full Home Solution',
+          image: '/placeholder.svg',
+          rating: 4.8,
+          description: 'Professional installation and monitoring for complete home security.',
+          website: 'https://bell.ca/smart-home',
+          contactEmail: 'info@bellsmarthome.ca'
+        },
+        {
+          id: 'prov2',
+          name: 'Rogers Smart Home Monitoring',
+          category: 'Security & Monitoring',
+          image: '/placeholder.svg',
+          rating: 4.6,
+          description: '24/7 professional monitoring and smart home integration.',
+          website: 'https://rogers.com/smart-home',
+          contactEmail: 'support@rogers.com'
+        }
+      ];
+    }
+    
+    return recommendations.recommendedProviders;
+  };
+
   // Get unique brands from recommendations
   const getUniqueBrands = (): string[] => {
     if (!recommendations || !recommendations.recommendationsByCategory) return [];
@@ -265,8 +302,13 @@ export const useRecommendationFilters = () => {
   };
 
   // Products count by category (for badges)
-  const getCategoryCount = (category: ProductCategory | 'all'): number => {
+  const getCategoryCount = (category: ProductCategory | 'all' | 'providers'): number => {
     if (!recommendations || !recommendations.recommendationsByCategory) return 0;
+    
+    if (category === 'providers') {
+      const providers = getServiceProviders();
+      return providers ? providers.length : 0;
+    }
     
     if (category === 'all') {
       let count = 0;
@@ -284,12 +326,20 @@ export const useRecommendationFilters = () => {
   };
 
   // Categories with products
-  const getActiveCategories = (): ProductCategory[] => {
+  const getActiveCategories = (): (ProductCategory | 'providers')[] => {
     if (!recommendations || !recommendations.recommendationsByCategory) return [];
     
-    return Object.entries(recommendations.recommendationsByCategory)
+    const categories = Object.entries(recommendations.recommendationsByCategory)
       .filter(([_, products]) => products && Array.isArray(products) && products.length > 0)
       .map(([category]) => category as ProductCategory);
+    
+    // Add providers tab if we have providers
+    const providers = getServiceProviders();
+    if (providers && providers.length > 0) {
+      return [...categories, 'providers' as 'providers'];
+    }
+    
+    return categories;
   };
 
   return {
@@ -306,6 +356,7 @@ export const useRecommendationFilters = () => {
     resetFilters,
     getUniqueBrands,
     getCategoryCount,
-    getActiveCategories
+    getActiveCategories,
+    getServiceProviders
   };
 };

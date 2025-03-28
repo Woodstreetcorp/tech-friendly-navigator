@@ -25,7 +25,8 @@ const Recommendations = () => {
     resetFilters,
     getUniqueBrands,
     getCategoryCount,
-    getActiveCategories
+    getActiveCategories,
+    getServiceProviders
   } = useRecommendationFilters();
   
   return (

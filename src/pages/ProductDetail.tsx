@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check, ExternalLink, Star } from 'lucide-react';
@@ -8,28 +7,30 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useUser } from '@/context/UserContext';
 import UserInfoForm from '@/components/UserInfoForm';
-import { Product } from '@/components/ProductCard';
-import { Skeleton } from '@/components/ui/skeleton';
+import { SmartHomeProduct } from '@/data/smartHomeProducts';
+
+type Product = SmartHomeProduct;
 
 const productsData: Product[] = [
   {
     id: 'prod1',
     name: 'Ring Video Doorbell 4',
-    category: 'Security',
-    subCategory: 'Video Doorbells',
+    category: 'security',
+    subCategory: 'video-doorbells',
     description: 'Advanced security with color video preview and improved motion detection. The Ring Video Doorbell 4 features enhanced motion detection, color Pre-Roll technology, and customizable privacy settings.',
     price: 199.99,
+    priceRange: 'mid-range',
     featuredImage: '/placeholder.svg',
     brand: 'Ring',
     features: [
-      'Quick Reply - pre-set responses for when you can\'t answer the door',
-      'Color Pre-Roll - captures 4 seconds of color video before motion is detected',
-      'Dual-band Wi-Fi - connects to both 2.4GHz and 5GHz networks',
-      'Improved motion detection with customizable motion zones',
-      'Live view and two-way talk from your phone, tablet, or PC',
-      'Works with Alexa for voice control and notifications'
+      { name: 'Quick Reply - pre-set responses for when you can\'t answer the door' },
+      { name: 'Color Pre-Roll - captures 4 seconds of color video before motion is detected' },
+      { name: 'Dual-band Wi-Fi - connects to both 2.4GHz and 5GHz networks' },
+      { name: 'Improved motion detection with customizable motion zones' },
+      { name: 'Live view and two-way talk from your phone, tablet, or PC' },
+      { name: 'Works with Alexa for voice control and notifications' }
     ],
-    compatibility: ['Alexa', 'Ring App', 'IFTTT'],
+    compatibility: ['Alexa', 'IFTTT'],
     ecosystems: ['Amazon Alexa'],
     rating: 4.7,
     reviewCount: 1245,
@@ -37,25 +38,29 @@ const productsData: Product[] = [
     recommendationReasons: ['Top rated', 'Easy installation'],
     affiliateUrl: 'https://example.com/ring-doorbell-4',
     commissionRate: 8,
+    installationType: 'DIY',
+    contractRequired: false,
+    monthlySubscriptionRequired: false,
   },
   {
     id: 'prod2',
     name: 'Nest Learning Thermostat',
-    category: 'Climate Control',
-    subCategory: 'Smart Thermostats',
+    category: 'climate',
+    subCategory: 'thermostats',
     description: 'Smart thermostat that learns your schedule and programs itself. The Nest Learning Thermostat adapts to your lifestyle, saving energy when you\'re away and maintaining comfort when you\'re home.',
     price: 249.99,
+    priceRange: 'mid-range',
     featuredImage: '/placeholder.svg',
     brand: 'Google Nest',
     features: [
-      'Auto-Schedule - learns the temperatures you like and creates a schedule',
-      'Home/Away Assist - adjusts temperature when you\'re away to save energy',
-      'Energy History - see how much energy you\'ve used and why',
-      'Remote control - adjust temperature from your phone, tablet, or laptop',
-      'Works with most HVAC systems',
-      'Farsight - lights up when it spots you across the room'
+      { name: 'Auto-Schedule - learns the temperatures you like and creates a schedule' },
+      { name: 'Home/Away Assist - adjusts temperature when you\'re away to save energy' },
+      { name: 'Energy History - see how much energy you\'ve used and why' },
+      { name: 'Remote control - adjust temperature from your phone, tablet, or laptop' },
+      { name: 'Works with most HVAC systems' },
+      { name: 'Farsight - lights up when it spots you across the room' }
     ],
-    compatibility: ['Google Assistant', 'Amazon Alexa', 'IFTTT'],
+    compatibility: ['Google Assistant', 'Alexa', 'IFTTT'],
     ecosystems: ['Google Home', 'Amazon Alexa'],
     rating: 4.9,
     reviewCount: 1823,
@@ -63,25 +68,29 @@ const productsData: Product[] = [
     recommendationReasons: ['Energy efficient', 'Easy to use'],
     affiliateUrl: 'https://example.com/nest-thermostat',
     commissionRate: 7,
+    installationType: 'DIY',
+    contractRequired: false,
+    monthlySubscriptionRequired: false,
   },
   {
     id: 'prod3',
     name: 'Philips Hue Starter Kit',
-    category: 'Lighting',
-    subCategory: 'Smart Lighting Systems',
+    category: 'lighting',
+    subCategory: 'smart-lighting-systems',
     description: 'Smart lighting system with voice control and custom scenes. The Philips Hue system lets you control your lights via app or voice, set schedules, and create personalized lighting scenes.',
     price: 179.99,
+    priceRange: 'mid-range',
     featuredImage: '/placeholder.svg',
     brand: 'Philips',
     features: [
-      'Control lights via app or voice assistant',
-      'Create custom lighting scenes and routines',
-      'Set wake up and go to sleep schedules',
-      'Includes Bridge hub and three color-changing bulbs',
-      '16 million colors and shades of white light',
-      'Syncs with music, games, and movies'
+      { name: 'Control lights via app or voice assistant' },
+      { name: 'Create custom lighting scenes and routines' },
+      { name: 'Set wake up and go to sleep schedules' },
+      { name: 'Includes Bridge hub and three color-changing bulbs' },
+      { name: '16 million colors and shades of white light' },
+      { name: 'Syncs with music, games, and movies' }
     ],
-    compatibility: ['Amazon Alexa', 'Google Assistant', 'Apple HomeKit', 'Samsung SmartThings'],
+    compatibility: ['Alexa', 'Google Assistant', 'Apple HomeKit', 'Samsung SmartThings'],
     ecosystems: ['Philips Hue', 'Amazon Alexa', 'Google Home', 'Apple HomeKit'],
     rating: 4.5,
     reviewCount: 2340,
@@ -89,25 +98,29 @@ const productsData: Product[] = [
     recommendationReasons: ['Versatile', 'Wide compatibility'],
     affiliateUrl: 'https://example.com/philips-hue',
     commissionRate: 6,
+    installationType: 'DIY',
+    contractRequired: false,
+    monthlySubscriptionRequired: false,
   },
   {
     id: 'prod4',
     name: 'Amazon Echo Show 10',
-    category: 'Smart Speakers',
-    subCategory: 'Smart Displays',
+    category: 'entertainment',
+    subCategory: 'smart-displays',
     description: 'Smart display with motion tracking and premium sound. The Echo Show 10 features a 10.1" HD screen that automatically rotates to face you, premium sound, and a built-in Zigbee hub.',
     price: 249.99,
+    priceRange: 'premium',
     featuredImage: '/placeholder.svg',
     brand: 'Amazon',
     features: [
-      'Motion tracking display that follows you as you move',
-      'Premium directional sound with dual front-firing tweeters and a powerful woofer',
-      'Built-in 13MP camera for video calls and home monitoring',
-      'Zigbee hub for connecting compatible smart home devices',
-      'Stream Netflix, Prime Video, music services, and more',
-      'Enhanced privacy controls including mic/camera off button and camera shutter'
+      { name: 'Motion tracking display that follows you as you move' },
+      { name: 'Premium directional sound with dual front-firing tweeters and a powerful woofer' },
+      { name: 'Built-in 13MP camera for video calls and home monitoring' },
+      { name: 'Zigbee hub for connecting compatible smart home devices' },
+      { name: 'Stream Netflix, Prime Video, music services, and more' },
+      { name: 'Enhanced privacy controls including mic/camera off button and camera shutter' }
     ],
-    compatibility: ['Amazon Alexa', 'Zigbee', 'Ring'],
+    compatibility: ['Alexa', 'Zigbee'],
     ecosystems: ['Amazon Alexa'],
     rating: 4.6,
     reviewCount: 983,
@@ -115,6 +128,9 @@ const productsData: Product[] = [
     recommendationReasons: ['Premium sound', 'Motion tracking'],
     affiliateUrl: 'https://example.com/echo-show-10',
     commissionRate: 8,
+    installationType: 'DIY',
+    contractRequired: false,
+    monthlySubscriptionRequired: false,
   }
 ];
 
@@ -124,7 +140,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showUserInfoForm, setShowUserInfoForm] = useState(false);
   
-  const { trackEvent, isUserDataCollected } = useUser();
+  const { trackEvent, userData } = useUser();
 
   useEffect(() => {
     console.log("ProductDetail mounted, loading product ID:", productId);
@@ -157,20 +173,22 @@ const ProductDetail = () => {
       productId: product.id,
       productName: product.name,
       source: 'product_detail_page',
-      url: product.affiliateUrl,
+      url: product.affiliateUrl || '',
     });
     
     toast.success(`Tracking click for ${product.name}`);
     
-    if (isUserDataCollected && product.affiliateUrl) {
-      window.open(product.affiliateUrl, '_blank');
-    } else {
-      setShowUserInfoForm(true);
-    }
+    // Always show the user info form first
+    setShowUserInfoForm(true);
   };
 
   const handleUserFormComplete = () => {
     setShowUserInfoForm(false);
+    
+    // If user data is collected and we have an affiliate URL, open it
+    if (userData && product?.affiliateUrl) {
+      window.open(product.affiliateUrl, '_blank');
+    }
   };
 
   if (loading) {
@@ -331,7 +349,7 @@ const ProductDetail = () => {
               {product.features.map((feature, index) => (
                 <div key={index} className="flex items-start">
                   <Check size={20} className="mr-2 text-primary mt-0.5 flex-shrink-0" />
-                  <span>{feature}</span>
+                  <span>{feature.name}</span>
                 </div>
               ))}
             </div>

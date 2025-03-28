@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { Button } from './ui/button';
@@ -42,7 +41,7 @@ const UserInfoForm = ({
   providerName,
   affiliateUrl 
 }: UserInfoFormProps) => {
-  const { setUserData, trackEvent } = useUser();
+  const { trackEvent, updateUserData } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -61,7 +60,7 @@ const UserInfoForm = ({
     
     try {
       // Save user data
-      setUserData({
+      updateUserData({
         name: values.name,
         email: values.email,
         phone: values.phone,
@@ -75,17 +74,11 @@ const UserInfoForm = ({
         productName: productName,
         providerName: providerName,
         source: 'user_info_form',
+        url: window.location.href
       });
       
       toast.success('Information saved successfully!');
       onComplete();
-      
-      // If we have an affiliate URL, open it after a short delay
-      if (affiliateUrl) {
-        setTimeout(() => {
-          window.open(affiliateUrl, '_blank');
-        }, 500);
-      }
     } catch (error) {
       console.error('Error saving user data:', error);
       toast.error('There was a problem saving your information. Please try again.');

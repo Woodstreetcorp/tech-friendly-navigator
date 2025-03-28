@@ -1,15 +1,18 @@
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { ProductCategory } from '@/data/smartHomeProducts';
-import { NoResultsMessage } from './NoResultsMessage';
-import ProductGrid from './ProductGrid';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductCategory } from "@/data/smartHomeProducts";
+import { capitalizeFirstLetter } from "@/lib/utils";
+import ProductGrid from "./ProductGrid";
+import NoResultsMessage from "./NoResultsMessage";
+import ServiceProviderGrid from "./ServiceProviderGrid";
 
 interface CategoryTabsProps {
   activeTab: string;
-  onTabChange: (value: string) => void;
-  categoryCount: (category: ProductCategory | 'all') => number;
-  activeCategories: ProductCategory[];
+  onTabChange: (tab: string) => void;
+  categoryCount: (category: ProductCategory | 'all' | 'providers') => number;
+  activeCategories: (ProductCategory | 'providers')[];
   filteredProducts: any[];
   showNoResults: boolean;
   onResetFilters: () => void;
@@ -24,50 +27,63 @@ const CategoryTabs = ({
   showNoResults,
   onResetFilters
 }: CategoryTabsProps) => {
-  // Handle case when no categories are active
-  if (!activeCategories || activeCategories.length === 0) {
-    return (
-      <div className="my-12">
-        <NoResultsMessage onResetFilters={onResetFilters} />
-      </div>
-    );
-  }
-
   return (
-    <Tabs defaultValue="all" value={activeTab} onValueChange={onTabChange}>
-      <div className="overflow-x-auto pb-2">
-        <TabsList className="mb-6">
-          <TabsTrigger value="all">
-            All Products
-            <Badge variant="outline" className="ml-2">{categoryCount('all')}</Badge>
+    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+      <TabsList className="mb-8 flex flex-wrap gap-2 h-auto">
+        <TabsTrigger key="all" value="all" className="relative">
+          All Categories
+          <span className="ml-2 inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted-foreground/10 text-xs font-medium">
+            {categoryCount('all')}
+          </span>
+        </TabsTrigger>
+        
+        {activeCategories.map(category => (
+          <TabsTrigger key={category} value={category} className="relative">
+            {category === 'providers' ? 'Service Providers' : capitalizeFirstLetter(category)}
+            <span className="ml-2 inline-flex items-center justify-center w-6 h-6 rounded-full bg-muted-foreground/10 text-xs font-medium">
+              {categoryCount(category)}
+            </span>
           </TabsTrigger>
-          
-          {activeCategories.map((category) => (
-            <TabsTrigger key={category} value={category}>
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-              <Badge variant="outline" className="ml-2">{categoryCount(category)}</Badge>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </div>
+        ))}
+      </TabsList>
       
-      <TabsContent value="all" className="pt-4">
-        {showNoResults ? (
-          <NoResultsMessage onResetFilters={onResetFilters} />
-        ) : (
-          <ProductGrid products={filteredProducts} />
-        )}
+      <TabsContent value="all">
+        <Card className="border-none shadow-none">
+          <CardContent className="p-0 mt-4">
+            {showNoResults ? (
+              <NoResultsMessage onResetFilters={onResetFilters} />
+            ) : (
+              <ProductGrid products={filteredProducts} />
+            )}
+          </CardContent>
+        </Card>
       </TabsContent>
       
-      {activeCategories.map((category) => (
-        <TabsContent key={category} value={category} className="pt-4">
-          {showNoResults ? (
-            <NoResultsMessage onResetFilters={onResetFilters} />
-          ) : (
-            <ProductGrid products={filteredProducts} />
-          )}
+      {activeTab === 'providers' && (
+        <TabsContent value="providers">
+          <Card className="border-none shadow-none">
+            <CardContent className="p-0 mt-4">
+              <ServiceProviderGrid />
+            </CardContent>
+          </Card>
         </TabsContent>
-      ))}
+      )}
+      
+      {activeCategories
+        .filter(category => category !== 'providers')
+        .map(category => (
+          <TabsContent key={category} value={category}>
+            <Card className="border-none shadow-none">
+              <CardContent className="p-0 mt-4">
+                {showNoResults ? (
+                  <NoResultsMessage onResetFilters={onResetFilters} />
+                ) : (
+                  <ProductGrid products={filteredProducts} />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ))}
     </Tabs>
   );
 };
