@@ -71,13 +71,10 @@ export function ProductsManager() {
     }
   };
 
-  const handleEditClick = (productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (product) {
-      setCurrentProductId(productId);
-      setCurrentProduct(product);
-      setIsEditDialogOpen(true);
-    }
+  const handleEditClick = (product: SmartHomeProduct) => {
+    setCurrentProductId(product.id);
+    setCurrentProduct(product);
+    setIsEditDialogOpen(true);
   };
 
   const handleDeleteProduct = (productId: string) => {

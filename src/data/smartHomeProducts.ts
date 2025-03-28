@@ -3,7 +3,11 @@ export type ProductFeature = {
   description?: string;
 }
 
-export type ProductCompatibility = 'Alexa' | 'Google Assistant' | 'Apple HomeKit' | 'Samsung SmartThings' | 'Z-Wave' | 'Zigbee' | 'IFTTT' | 'Thread';
+export type ProductCompatibility = 
+  'Alexa' | 'Google Assistant' | 'Apple HomeKit' | 'Samsung SmartThings' | 
+  'Z-Wave' | 'Zigbee' | 'IFTTT' | 'Thread' | 'Matter' | 'Hubitat' | 
+  'Home Assistant' | 'Wink' | 'Control4' | 'Crestron' | 'Bluetooth' | 
+  'Wi-Fi' | 'Vera' | 'Insteon';
 
 export type ProductCategory = 
   'security' | 'locks' | 'lighting' | 'climate' | 'entertainment' | 

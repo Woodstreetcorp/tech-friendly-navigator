@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Image, Upload } from 'lucide-react';
 import { toast } from "sonner";
@@ -15,9 +15,21 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const processFile = useCallback((file: File) => {
     if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, GIF, or WebP)");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size should be less than 5MB");
+      return;
+    }
 
     setIsUploading(true);
 
@@ -32,6 +44,13 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
       onImageChange(objectUrl);
       toast.success("Image uploaded successfully!");
     }, 1000);
+  }, [onImageChange]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file);
+    }
   };
 
   const triggerFileInput = () => {
@@ -64,17 +83,9 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
     setIsDragging(false);
     
     const file = e.dataTransfer.files[0];
-    if (!file) return;
-    
-    setIsUploading(true);
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    
-    setTimeout(() => {
-      setIsUploading(false);
-      onImageChange(objectUrl);
-      toast.success("Image uploaded successfully!");
-    }, 1000);
+    if (file) {
+      processFile(file);
+    }
   };
 
   return (
@@ -107,7 +118,7 @@ export const ImageUploader = ({ currentImage, onImageChange, label = "Image" }: 
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 w-full">
           <Button 
             type="button" 
             variant="outline" 
