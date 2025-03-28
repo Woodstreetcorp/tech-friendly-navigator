@@ -30,13 +30,30 @@ export const useRecommendationFilters = () => {
   const { trackEvent } = useUser();
   const [hasTrackedView, setHasTrackedView] = useState(false);
 
+  // Debug localStorage content
+  useEffect(() => {
+    const recommendationsData = localStorage.getItem('smartHomeRecommendations');
+    console.log('Raw recommendations data from localStorage:', recommendationsData);
+  }, []);
+
   // Load recommendations from localStorage
   useEffect(() => {
     const recommendationsData = localStorage.getItem('smartHomeRecommendations');
     if (recommendationsData) {
       try {
         const parsedData = JSON.parse(recommendationsData) as RecommendationData;
-        setRecommendations(parsedData);
+        console.log('Parsed recommendations data:', parsedData);
+        
+        // Add fallback data if parsedData is incomplete
+        if (!parsedData.topRecommendations || !parsedData.recommendationsByCategory) {
+          console.log('Adding fallback data to incomplete recommendations');
+          // Import directly to avoid circular dependency
+          const { generateRecommendations } = require('@/utils/recommendationEngine');
+          const fallbackRecommendations = generateRecommendations({});
+          setRecommendations(fallbackRecommendations);
+        } else {
+          setRecommendations(parsedData);
+        }
         
         // Track view only once
         if (!hasTrackedView) {
@@ -49,15 +66,30 @@ export const useRecommendationFilters = () => {
         }
       } catch (error) {
         console.error("Error parsing recommendations:", error);
+        // Generate fallback recommendations on parse error
+        console.log('Generating fallback recommendations due to parse error');
+        const { generateRecommendations } = require('@/utils/recommendationEngine');
+        const fallbackRecommendations = generateRecommendations({});
+        setRecommendations(fallbackRecommendations);
       }
     } else {
-      console.log("No recommendations found in localStorage");
+      console.log("No recommendations found in localStorage, generating fallback data");
+      // Generate fallback recommendations if none exist
+      const { generateRecommendations } = require('@/utils/recommendationEngine');
+      const fallbackRecommendations = generateRecommendations({});
+      setRecommendations(fallbackRecommendations);
     }
   }, [trackEvent, hasTrackedView]);
 
   // Apply filters when recommendations or activeTab changes
   useEffect(() => {
-    if (!recommendations) return;
+    if (!recommendations) {
+      console.log('No recommendations available for filtering');
+      return;
+    }
+    
+    console.log('Filtering recommendations for tab:', activeTab);
+    console.log('Current filters:', filters);
     
     let filtered: RecommendationItem[] = [];
     
@@ -66,9 +98,9 @@ export const useRecommendationFilters = () => {
       const allProducts: RecommendationItem[] = [];
       if (recommendations.recommendationsByCategory) {
         Object.entries(recommendations.recommendationsByCategory).forEach(([_, categoryProducts]) => {
-          if (categoryProducts) {
+          if (categoryProducts && Array.isArray(categoryProducts)) {
             categoryProducts.forEach(product => {
-              if (!allProducts.some(p => p.product.id === product.product.id)) {
+              if (product && product.product && !allProducts.some(p => p.product.id === product.product.id)) {
                 allProducts.push(product);
               }
             });
@@ -78,11 +110,19 @@ export const useRecommendationFilters = () => {
       filtered = allProducts;
     } else {
       filtered = recommendations.recommendationsByCategory && 
-                 recommendations.recommendationsByCategory[activeTab as ProductCategory] || [];
+                 Array.isArray(recommendations.recommendationsByCategory[activeTab as ProductCategory]) ?
+                 recommendations.recommendationsByCategory[activeTab as ProductCategory] : [];
     }
+    
+    console.log(`Found ${filtered.length} products for tab ${activeTab} before applying filters`);
     
     // Apply filters
     filtered = filtered.filter(item => {
+      if (!item || !item.product) {
+        console.log('Filtering out invalid product item:', item);
+        return false;
+      }
+      
       const product = item.product;
       
       // Price filter
@@ -93,7 +133,7 @@ export const useRecommendationFilters = () => {
       // Compatibility filter
       if (filters.compatibility.length > 0) {
         const hasMatchingCompatibility = filters.compatibility.some(c => 
-          product.compatibility.includes(c as any)
+          product.compatibility && product.compatibility.includes(c as any)
         );
         if (!hasMatchingCompatibility) return false;
       }
@@ -114,6 +154,8 @@ export const useRecommendationFilters = () => {
       
       return true;
     });
+    
+    console.log(`After filtering: ${filtered.length} products remain`);
     
     // Sort by score
     filtered.sort((a, b) => b.score - a.score);
@@ -196,6 +238,7 @@ export const useRecommendationFilters = () => {
   };
 
   const resetFilters = () => {
+    console.log('Resetting all filters');
     setFilters({
       priceRange: [0, 1000],
       compatibility: [],
@@ -212,7 +255,7 @@ export const useRecommendationFilters = () => {
     const brands = new Set<string>();
     
     Object.entries(recommendations.recommendationsByCategory).forEach(([_, categoryProducts]) => {
-      if (categoryProducts) {
+      if (categoryProducts && Array.isArray(categoryProducts)) {
         categoryProducts.forEach(item => {
           if (item && item.product && item.product.brand) {
             brands.add(item.product.brand);
@@ -231,14 +274,16 @@ export const useRecommendationFilters = () => {
     if (category === 'all') {
       let count = 0;
       Object.values(recommendations.recommendationsByCategory).forEach(categoryProducts => {
-        if (categoryProducts) {
+        if (categoryProducts && Array.isArray(categoryProducts)) {
           count += categoryProducts.length;
         }
       });
       return count;
     }
     
-    return recommendations.recommendationsByCategory[category]?.length || 0;
+    return recommendations.recommendationsByCategory[category] && 
+           Array.isArray(recommendations.recommendationsByCategory[category]) ? 
+           recommendations.recommendationsByCategory[category].length : 0;
   };
 
   // Categories with products
@@ -246,7 +291,7 @@ export const useRecommendationFilters = () => {
     if (!recommendations || !recommendations.recommendationsByCategory) return [];
     
     return Object.entries(recommendations.recommendationsByCategory)
-      .filter(([_, products]) => products && products.length > 0)
+      .filter(([_, products]) => products && Array.isArray(products) && products.length > 0)
       .map(([category]) => category as ProductCategory);
   };
 

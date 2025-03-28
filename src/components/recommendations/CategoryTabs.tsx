@@ -24,8 +24,17 @@ const CategoryTabs = ({
   showNoResults,
   onResetFilters
 }: CategoryTabsProps) => {
+  // Handle case when no categories are active
+  if (!activeCategories || activeCategories.length === 0) {
+    return (
+      <div className="my-12">
+        <NoResultsMessage onResetFilters={onResetFilters} />
+      </div>
+    );
+  }
+
   return (
-    <Tabs defaultValue="all" onValueChange={onTabChange}>
+    <Tabs defaultValue="all" value={activeTab} onValueChange={onTabChange}>
       <div className="overflow-x-auto pb-2">
         <TabsList className="mb-6">
           <TabsTrigger value="all">
@@ -52,7 +61,7 @@ const CategoryTabs = ({
       
       {activeCategories.map((category) => (
         <TabsContent key={category} value={category} className="pt-4">
-          {filteredProducts.length === 0 ? (
+          {showNoResults ? (
             <NoResultsMessage onResetFilters={onResetFilters} />
           ) : (
             <ProductGrid products={filteredProducts} />
