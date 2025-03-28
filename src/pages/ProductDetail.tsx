@@ -131,6 +131,37 @@ const productsData: Product[] = [
     installationType: 'DIY',
     contractRequired: false,
     monthlySubscriptionRequired: false,
+  },
+  // Adding the SimpliSafe Alarm product
+  {
+    id: 'simplisafe-alarm',
+    name: 'SimpliSafe Home Security System',
+    category: 'security',
+    subCategory: 'alarm-systems',
+    description: 'Complete home security system with professional monitoring. SimpliSafe provides comprehensive protection with easy DIY setup and no long-term contracts.',
+    price: 279.99,
+    priceRange: 'premium',
+    featuredImage: '/placeholder.svg',
+    brand: 'SimpliSafe',
+    features: [
+      { name: 'Easy DIY installation in under an hour' },
+      { name: 'No contracts or long-term commitments' },
+      { name: '24/7 professional monitoring available' },
+      { name: 'Cellular and Wi-Fi connectivity with battery backup' },
+      { name: 'Mobile app control and alerts' },
+      { name: 'Compatible with Alexa and Google Assistant' }
+    ],
+    compatibility: ['Alexa', 'Google Assistant'],
+    rating: 4.8,
+    reviewCount: 2156,
+    recommended: true,
+    recommendationReasons: ['No contracts', 'Easy setup'],
+    affiliateUrl: 'https://example.com/simplisafe',
+    commissionRate: 7,
+    installationType: 'DIY',
+    contractRequired: false,
+    monthlySubscriptionRequired: true,
+    monthlySubscription: 24.99,
   }
 ];
 
